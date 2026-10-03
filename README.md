@@ -1,4 +1,4 @@
-# Latch Benchmark Suite (`latch-bench`)
+# Latch Benchmark Suite
 
 **Apache-2.0** · OSS-ready scaffold · org [`iome-sh`](https://github.com/iome-sh)
 

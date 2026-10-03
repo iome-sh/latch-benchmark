@@ -15,7 +15,7 @@ option(LATCH_BENCH_BUILD_MUJOCO "Build MuJoCo harness targets" ON)
 option(LATCH_BENCH_ASAN "Address and undefined sanitizers" OFF)
 
 if(NOT LATCH_BENCH_BUILD_MUJOCO)
-  message(STATUS "latch-bench mujoco: sources present, targets skipped (LATCH_BENCH_BUILD_MUJOCO=OFF)")
+  message(STATUS "latch-benchmark mujoco: sources present, targets skipped (LATCH_BENCH_BUILD_MUJOCO=OFF)")
   return()
 endif()
 
@@ -89,12 +89,12 @@ add_library(latch_headers INTERFACE)
 target_include_directories(latch_headers INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if(LATCH_LIBRARY)
-  message(STATUS "latch-bench mujoco: linking real Latch at ${LATCH_LIBRARY} (bit-match only with LATCH_GOLDENS)")
+  message(STATUS "latch-benchmark mujoco: linking real Latch at ${LATCH_LIBRARY} (bit-match only with LATCH_GOLDENS)")
   add_library(latch_oracle INTERFACE)
   target_link_libraries(latch_oracle INTERFACE "${LATCH_LIBRARY}" latch_headers)
   target_compile_definitions(latch_oracle INTERFACE LBS_MOCK_ORACLE=0)
 else()
-  message(STATUS "latch-bench mujoco: no liblatch (LATCH_LIB_DIR unset) — mock-oracle")
+  message(STATUS "latch-benchmark mujoco: no liblatch (LATCH_LIB_DIR unset) — mock-oracle")
   add_library(latch_mock STATIC src/latch_mock.c)
   target_link_libraries(latch_mock PUBLIC latch_headers)
   target_compile_options(latch_mock PRIVATE -Wall -Wextra -Wpedantic -Werror)
@@ -178,4 +178,4 @@ add_custom_target(lbs_fixtures ALL
   USES_TERMINAL
 )
 
-message(STATUS "latch-bench mujoco: L1 sources and L2 mock-oracle verify/soak (LATCH_BENCH_BUILD_MUJOCO=ON)")
+message(STATUS "latch-benchmark mujoco: L1 sources and L2 mock-oracle verify/soak (LATCH_BENCH_BUILD_MUJOCO=ON)")
