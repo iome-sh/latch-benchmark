@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 HERE="$(cd "$(dirname "$0")" && pwd)"
-LOG="${TMPDIR:-/tmp}/latch-bench-together-$$"
+LOG="${TMPDIR:-/tmp}/latch-benchmark-together-$$"
 mkdir -p "${LOG}"
 
 if [[ ! -f /opt/ros/jazzy/setup.bash ]]; then
