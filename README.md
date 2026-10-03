@@ -31,7 +31,7 @@ Full definitions: [`docs/SPEC.md`](docs/SPEC.md). Banned Miss KPIs: [`docs/NONGO
 
 ## Status
 
-**L0 Exists. L1 MuJoCo mock-oracle Exists. L2 verify and soak stay Gap. BM-09 and BM-10 stay Gap (tip `beef75f8ced96163c44aaca18fd9038352a96da1`).** Spec / roadmap / honesty docs
+**L0 Exists. L1 MuJoCo mock-oracle Exists. L2 verify and soak stay Gap. BM-09 and BM-10 stay Gap.** Spec / roadmap / honesty docs
 stay the contract. `harness/mujoco` is a two-rate C harness (MuJoCo fetched
 at configure, Apache-2.0, not committed). Public CI success ran mock-oracle
 `lbs_verify` and `lbs_soak`. The log says this is not a Latch certificate and

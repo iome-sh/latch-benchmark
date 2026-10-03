@@ -5,7 +5,7 @@ type: software
 authors:
   - name: "iome-sh contributors"
     website: "https://github.com/iome-sh"
-repository-code: "https://github.com/iome-sh/latch-bench"
+repository-code: "https://github.com/iome-sh/latch-benchmark"
 license: Apache-2.0
 abstract: >
   Benchmark suite for in-process robot mode-election planes.
