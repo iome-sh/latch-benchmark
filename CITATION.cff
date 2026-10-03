@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use the Latch Benchmark Suite, please cite it as below."
+title: "Latch Benchmark Suite (LBS)"
+type: software
+authors:
+  - name: "iome-sh contributors"
+    website: "https://github.com/iome-sh"
+repository-code: "https://github.com/iome-sh/latch-bench"
+license: Apache-2.0
+abstract: >
+  Benchmark suite for in-process robot mode-election planes.
+  Measures signed mode-election quality (determinism, chatter damp,
+  consider latency, evidence verify, yield≠stop honesty).
+  Not a grasp-success suite, SIL/ISO cert pack, or BehaviorTree product.
+keywords:
+  - robotics
+  - mode-election
+  - benchmarks
+  - mujoco
+  - ros2
+  - validation
+# version / date-released: fill when first public release tags

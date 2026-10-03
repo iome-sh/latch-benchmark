@@ -1,0 +1,78 @@
+name: mock_elect
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  mock-oracle-elect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: ROS 2 Jazzy apt
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+            -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu noble main" \
+            | sudo tee /etc/apt/sources.list.d/ros2.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y \
+            ros-jazzy-ros-base \
+            ros-jazzy-rclcpp \
+            ros-jazzy-std-msgs \
+            ros-jazzy-ament-cmake \
+            python3-colcon-common-extensions \
+            build-essential
+
+      - name: Build and run the mock oracle elector
+        run: |
+          set -euo pipefail
+          set +u
+          source /opt/ros/jazzy/setup.bash
+          set -u
+          mkdir -p /tmp/overlay/src
+          ln -s "${GITHUB_WORKSPACE}/harness/mock_elect" /tmp/overlay/src/latch_bench_mock_elect
+          ln -s "${GITHUB_WORKSPACE}/harness/mujoco" /tmp/overlay/src/mujoco
+          cd /tmp/overlay
+          colcon build --packages-select latch_bench_mock_elect
+          set +u
+          source /tmp/overlay/install/setup.bash
+          set -u
+          ros2 run latch_bench_mock_elect latch_mock_elect
+          record_out="$(ros2 run latch_bench_mock_elect latch_mode_record)"
+          printf '%s\n' "$record_out"
+          for line in \
+            "mode-record published" \
+            "name=0 score=60 margin=20 plane=3" \
+            "evidence-width 16" \
+            "not evidence payload v2" \
+            "L3 stays open"
+          do
+            if ! grep -F -q -- "$line" <<< "$record_out"; then
+              printf 'missing: %s\n' "$line" >&2
+              exit 1
+            fi
+          done
+          apply_out="$(ros2 run latch_bench_mock_elect latch_apply_publish)"
+          printf '%s\n' "$apply_out"
+          for line in \
+            "apply-reject before consume" \
+            "target gone holds" \
+            "not Latch" \
+            "L3 stays open"
+          do
+            if ! grep -F -q -- "$line" <<< "$apply_out"; then
+              printf 'missing: %s\n' "$line" >&2
+              exit 1
+            fi
+          done

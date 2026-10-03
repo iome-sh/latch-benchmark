@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>latch_bench_ros2_gz</name>
+  <version>0.0.0</version>
+  <description>Partner-path ROS 2 + gz launch for the one-joint mock-oracle FA run. No Latch binary shipped.</description>
+  <maintainer email="ops@iome.sh">iome-sh</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- Dependencies declared when L3 sources land; keep stub installable as docs-only. -->
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

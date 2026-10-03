@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot name="latch_bench_one">
+  <link name="world"/>
+  <link name="base_link">
+    <inertial>
+      <mass value="5"/>
+      <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+    </inertial>
+    <visual><geometry><box size="0.2 0.2 0.2"/></geometry></visual>
+    <collision><geometry><box size="0.2 0.2 0.2"/></geometry></collision>
+  </link>
+  <link name="arm_link">
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+    <visual><geometry><box size="0.4 0.1 0.1"/></geometry></visual>
+    <collision><geometry><box size="0.4 0.1 0.1"/></geometry></collision>
+  </link>
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.5" rpy="0 0 0"/>
+  </joint>
+  <joint name="joint1" type="prismatic">
+    <parent link="base_link"/>
+    <child link="arm_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1" upper="1" effort="20" velocity="1"/>
+    <dynamics damping="0.1" friction="0"/>
+  </joint>
+  <ros2_control name="GazeboSimSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="joint1">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>@PARAMS@</parameters>
+    </plugin>
+  </gazebo>
+</robot>

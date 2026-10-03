@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="empty">
+    <!-- Physics system only. No robot. No Latch plugin. This world does not elect a mode. -->
+    <physics name="phys" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+  </world>
+</sdf>

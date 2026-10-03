@@ -1,0 +1,72 @@
+name: control_and_condition
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  together:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: ROS 2 Jazzy apt
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates git
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+            -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu noble main" \
+            | sudo tee /etc/apt/sources.list.d/ros2.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-colcon-common-extensions \
+            build-essential \
+            ros-jazzy-ros-base \
+            ros-jazzy-ament-cmake \
+            ros-jazzy-ros2-control \
+            ros-jazzy-ros2-controllers \
+            ros-jazzy-controller-manager \
+            ros-jazzy-joint-state-broadcaster \
+            ros-jazzy-forward-command-controller \
+            ros-jazzy-hardware-interface \
+            ros-jazzy-robot-state-publisher \
+            ros-jazzy-sensor-msgs \
+            ros-jazzy-std-msgs \
+            ros-jazzy-rclcpp \
+            ros-jazzy-rclcpp-action \
+            ros-jazzy-behaviortree-cpp \
+            ros-jazzy-generate-parameter-library \
+            libboost-dev \
+            libfmt-dev
+
+      - name: Controller and read-only condition
+        run: |
+          set -euo pipefail
+          set +u
+          source /opt/ros/jazzy/setup.bash
+          set -u
+          rm -rf /tmp/btws
+          mkdir -p /tmp/btws/src
+          git clone https://github.com/BehaviorTree/BehaviorTree.ROS2.git /tmp/btws/src/BehaviorTree.ROS2
+          git -C /tmp/btws/src/BehaviorTree.ROS2 checkout 72a3bf51dad332c67b99fc3373ccd5242f94f680
+          cd /tmp/btws
+          colcon build --packages-select btcpp_ros2_interfaces behaviortree_ros2
+          set +u
+          source /tmp/btws/install/setup.bash
+          set -u
+          mkdir -p /tmp/overlay/src
+          ln -s "${GITHUB_WORKSPACE}/harness/bt_condition" /tmp/overlay/src/latch_bench_bt
+          cd /tmp/overlay
+          colcon build --packages-select latch_bench_bt
+          cd "${GITHUB_WORKSPACE}"
+          export BT_SETUP=/tmp/btws/install/setup.bash
+          export OVERLAY_SETUP=/tmp/overlay/install/setup.bash
+          bash harness/ros2_control/launch_with_condition.sh

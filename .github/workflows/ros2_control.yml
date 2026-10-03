@@ -1,0 +1,42 @@
+name: ros2_control
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  mock-hardware:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: ROS 2 Jazzy apt
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+            -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu noble main" \
+            | sudo tee /etc/apt/sources.list.d/ros2.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y \
+            ros-jazzy-ros-base \
+            ros-jazzy-ros2-control \
+            ros-jazzy-ros2-controllers \
+            ros-jazzy-controller-manager \
+            ros-jazzy-joint-state-broadcaster \
+            ros-jazzy-forward-command-controller \
+            ros-jazzy-hardware-interface \
+            ros-jazzy-robot-state-publisher \
+            ros-jazzy-sensor-msgs \
+            ros-jazzy-std-msgs
+
+      - name: Mock hardware position controller
+        run: bash harness/ros2_control/launch_mock.sh

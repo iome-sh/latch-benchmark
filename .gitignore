@@ -1,0 +1,49 @@
+# Build
+build/
+cmake-build-*/
+out/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+compile_commands.json
+
+# Latch proprietary artifacts (never commit)
+*.so.latch
+latch.so
+liblatch*
+vendor/latch/
+.latch-artifact/
+private/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Python / ROS
+__pycache__/
+*.pyc
+.venv/
+install/
+log/
+.colcon/
+
+# Test / coverage
+*.gcda
+*.gcno
+coverage/
+.pytest_cache/
+
+# Logs / local goldens overrides
+*.log
+session-*.jsonl
+!fixtures/**/*.jsonl.example
+
+# Local word list for scripts/lint_public_boundary.sh (never commit)
+scripts/public_boundary_denylist.local

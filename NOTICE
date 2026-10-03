@@ -1,0 +1,11 @@
+Latch Benchmark Suite (latch-bench)
+Copyright 2026 iome-sh contributors
+
+This product includes software developed for the Latch Benchmark Suite (LBS).
+
+The Latch core is a separate proprietary product (All Rights Reserved)
+and is NOT included in this repository. This suite is a validation harness,
+fixtures, schemas, and FA scripts that link Latch via an optional external
+library.
+
+Licensed under the Apache License, Version 2.0.

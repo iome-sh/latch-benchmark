@@ -1,0 +1,114 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  docs-lint:
+    name: docs presence + basic lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Required OSS / L0 files exist
+        run: |
+          set -euo pipefail
+          for f in \
+            README.md LICENSE NOTICE CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md CITATION.cff \
+            docs/SPEC.md docs/ROADMAP.md docs/INTEGRATION.md docs/NONGOALS.md docs/ADJACENCY.md \
+            schemas/evidence-v2.md schemas/mode-record.md schemas/golden-jsonl.md \
+            fixtures/README.md scripts/fa_checklist.md \
+            scripts/lint_public_boundary.sh \
+            scripts/w2_optional_artifact.sh \
+            harness/mujoco/README.md harness/ros2_gz/README.md \
+            harness/ros2_gz/launch/partner_fa.launch.py \
+            harness/ros2_gz/launch_partner.sh \
+            third_party/NOTICE.md
+          do
+            test -f "$f" || { echo "missing: $f"; exit 1; }
+          done
+          echo "L0 required files OK"
+
+      - name: Public boundary lint
+        run: bash scripts/lint_public_boundary.sh
+
+      - name: Mode delta unit test
+        run: python3 -m unittest harness/ros2_control/test_mode_delta.py
+
+      - name: Optional BM-01 artifact hook
+        run: |
+          set -euo pipefail
+          unset LATCH_LIB_DIR LATCH_LIBRARY LATCH_GOLDENS
+          bash scripts/w2_optional_artifact.sh
+
+  harness-mujoco:
+    name: mujoco harness (when present)
+    runs-on: ubuntu-latest
+    needs: docs-lint
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build stub if sources exist
+        run: |
+          set -euo pipefail
+          if [ -f harness/mujoco/CMakeLists.txt ] && [ -n "$(find harness/mujoco -name '*.c' -o -name '*.cpp' 2>/dev/null | head -1)" ]; then
+            cmake -S harness/mujoco -B build/mujoco
+            cmake --build build/mujoco
+          else
+            echo "MuJoCo harness sources not present yet — stub skip (L1 pending)"
+          fi
+
+      - name: FA checklist script
+        run: |
+          set -euo pipefail
+          if [ -d build/mujoco ]; then
+            bash scripts/fa_checklist_run.sh
+          fi
+
+  harness-ros2-gz:
+    name: ros2_gz package stub (when present)
+    runs-on: ubuntu-latest
+    needs: docs-lint
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check package.xml presence
+        run: |
+          set -euo pipefail
+          if [ -f harness/ros2_gz/package.xml ]; then
+            echo "package.xml present (L3 stub)"
+            head -n 20 harness/ros2_gz/package.xml
+          else
+            echo "ros2_gz package not present yet — stub skip"
+          fi
+          cmake -S harness/ros2_gz -B build/ros2_gz
+          cmake --build build/ros2_gz
+          ctest --test-dir build/ros2_gz --output-on-failure
+
+      - name: Headless gz-sim server (fixed iterations)
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y curl ca-certificates
+          sudo curl -fsSL https://packages.osrfoundation.org/gazebo.gpg \
+            -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+          codename="$(. /etc/os-release && echo "${VERSION_CODENAME}")"
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable ${codename} main" \
+            | sudo tee /etc/apt/sources.list.d/gazebo-stable.list >/dev/null
+          sudo apt-get update
+          # gz-sim8-cli is the sim verb; gz-tools2 ships /usr/bin/gz.
+          # libgz-sim8-plugins ships the physics system.
+          # libgz-physics7-dartsim-dev ships libgz-physics-dartsim-plugin.so,
+          # which is the engine name the physics system loads by default.
+          # Not the gz-harmonic metapackage. Do not install ROS or BehaviorTree.
+          sudo apt-get install -y \
+            gz-tools2 \
+            gz-sim8-cli \
+            libgz-sim8-plugins \
+            libgz-physics7-dartsim-dev
+          command -v gz
+          bash harness/ros2_gz/launch_server.sh

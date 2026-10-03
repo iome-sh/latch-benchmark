@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<robot name="latch_bench_one">
+  <link name="base_link"/>
+  <link name="arm_link"/>
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="arm_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14" upper="3.14" effort="1" velocity="1"/>
+  </joint>
+  <ros2_control name="One" type="system">
+    <hardware>
+      <plugin>mock_components/GenericSystem</plugin>
+    </hardware>
+    <joint name="joint1">
+      <command_interface name="position"/>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+    </joint>
+  </ros2_control>
+</robot>
