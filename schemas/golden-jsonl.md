@@ -14,8 +14,10 @@ dwell, plane, and evidence against the frozen external oracle (60 rows).
 ```
 
 The tracked file `fixtures/latch-robot-1.jsonl` is flat JSONL. `snapshot` is
-the blob id. `grasped` is a sense input on the row. Session JSONL for BM-09
-adds run metadata and may include sense stream references for soak (BM-10).
+the blob id. `grasped` is a sense input on the row. `evidence` is the
+evidence-v2 prefix in [`evidence-v2.md`](evidence-v2.md). Session JSONL for
+BM-09 adds run metadata and may include sense stream references for soak
+(BM-10).
 
 ## Fixtures in this repo
 

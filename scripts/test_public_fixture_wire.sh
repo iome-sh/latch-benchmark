@@ -122,11 +122,26 @@ if printf '%s\n' "${wire}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
   if printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed'; then
     fail "60/60 match also printed not claimed"
   fi
+  if printf '%s\n' "${wire}" | grep -q 'BM-01 60-row golden: Gap'; then
+    fail "60/60 match also left BM-01 Gap"
+  fi
 else
   printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed' || fail "public run did not print not claimed"
   printf '%s\n' "${wire}" | grep -q 'BM-01 60-row golden: Gap' || fail "public run did not leave BM-01 Gap"
 fi
-printf '%s\n' "${wire}" | grep -q 'BM-09 evidence replay: Gap' || fail "BM-09 not Gap"
-printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak: Gap' || fail "BM-10 not Gap"
+if printf '%s\n' "${wire}" | grep -q 'BM-09 replay ran:'; then
+  if printf '%s\n' "${wire}" | grep -q 'BM-09 evidence replay: Gap'; then
+    fail "BM-09 replay also left Gap"
+  fi
+else
+  printf '%s\n' "${wire}" | grep -q 'BM-09 evidence replay: Gap' || fail "BM-09 not Gap"
+fi
+if printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak ran:'; then
+  if printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak: Gap'; then
+    fail "BM-10 soak also left Gap"
+  fi
+else
+  printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak: Gap' || fail "BM-10 not Gap"
+fi
 
 echo "public fixture wire tests passed"

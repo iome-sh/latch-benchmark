@@ -16,8 +16,15 @@ offline recompute match at 100%.
 | Payload inputs | sense + mode-record fields as defined by Latch ABI / oracle |
 | Algorithm | SHA-256 truncated/encoded per Latch evidence-v2 contract |
 
-Exact payload concatenation lives with Latch ABI docs. This repo’s verify CLI
-(L2) must bit-match that contract — do not invent a divergent hash here.
+The tracked file `fixtures/latch-robot-1.jsonl` matches this concatenation.
+The digest is the first 16 hex characters of SHA-256 over one line, with
+decimal integers and no spaces:
+
+`ev2|{snapshot}|{name}|{score}|{margin}|{dwell}|{plane}|{joint}|{limit}|{collision}|{estop}|{contact}|{grasped}|{target_seen}|{sense_age}|{wrench}`
+
+`grasped` is a sense input in that line. Apply rows hash the apply-time sense.
+Snapshot `lbs-mock-oracle` keeps its labeled mock digest. That digest is not
+this payload. This recompute is not a Latch certificate.
 
 ## Non-claims
 

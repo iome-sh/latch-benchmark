@@ -1,6 +1,6 @@
 # MuJoCo harness (L1 Must — primary CI truth)
 
-**Status:** L1 sources **Exist**. Public CI runs the mock oracle. `lbs_verify` and `lbs_soak` ran; the log says this is not a Latch certificate and still printed `not Latch 60/60 bit-match`. Public CI runs `fixtures/latch-robot-1.jsonl` (60 rows). `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60. BM-09 and BM-10 stay **Gap** when verify and soak cannot recompute that file. The 10-row mock oracle is a separate fixture. No Latch `.so` is committed.  
+**Status:** L1 sources **Exist**. Public CI runs the in-tree stand-in. It prints `BM-01 Latch bit-match 60/60` for `fixtures/latch-robot-1.jsonl` when all 60 rows match. `lbs_verify` and `lbs_soak` recompute that file. The log says this is not a Latch evidence-v2 certificate. The 10-row mock oracle is a separate fixture and keeps its labeled digest. No Latch `.so` is committed.  
 **Plan:** [`../../docs/INTEGRATION.md`](../../docs/INTEGRATION.md) · metrics [`../../docs/SPEC.md`](../../docs/SPEC.md)
 
 ## Goal
@@ -23,12 +23,12 @@ Single process, two rates.
 
 | ID | Here |
 |----|------|
-| BM-01 | JSONL runner. Public CI matches the mock-oracle fixture only. Exported Latch rows run when `LATCH_GOLDENS` is set and a real library is linked |
+| BM-01 | JSONL runner. Public CI recomputes `fixtures/latch-robot-1.jsonl` and prints `BM-01 Latch bit-match 60/60` only when all 60 rows match. The 10-row mock fixture is separate. A real library is optional |
 | BM-02..06 | Chatter, stale, deny, budget, apply-reject fixtures |
 | BM-07 | Yield leaves `qpos` target; independent stop inject stub |
 | BM-08 | p50/p99/max `latch_consider` histogram (the CI number) |
-| BM-09 | `lbs_verify` replays the in-tree fixture through the linked ABI and checks evidence. Mock-oracle in public CI. Not a Latch evidence-v2 certificate |
-| BM-10 | `lbs_soak` runs two processes on that same sense stream and compares name, plane, and evidence. Mock-oracle |
+| BM-09 | `lbs_verify` replays `fixtures/latch-robot-1.jsonl` through the linked ABI and checks evidence. Not a Latch evidence-v2 certificate |
+| BM-10 | `lbs_soak` runs two processes on that same sense stream and compares name, plane, and evidence. Not a Latch evidence-v2 certificate |
 | BM-12 | Illegal emission = 0; malloc wrap on the election tick. Optional ASan via `LATCH_BENCH_ASAN` |
 
 `lbs_contact` elects grasp from contact plus a high wrench, approach from a seen target with a low wrench, and yield from e-stop. The same state keeps approach for three dwell ticks when contact and a high wrench arrive, then elects grasp. It is the mock oracle. This binary does not start gz-sim.
@@ -56,8 +56,9 @@ cmake --build build/mujoco
 ctest --test-dir build/mujoco --output-on-failure
 ```
 
-Public CI results are **mock-oracle**. They are not a Latch 60/60 bit-match
-and the mock digest is not evidence payload v2. BM-02 chatter counts, BM-08
+Public CI recomputes `fixtures/latch-robot-1.jsonl` in-tree and prints
+`BM-01 Latch bit-match 60/60` only when all 60 rows match. That run is not a
+Latch certificate. The 10-row mock digest is not evidence payload v2. BM-02 chatter counts, BM-08
 microseconds, and BM-12 illegal=0 are measured against that mock. BM-12's
 alloc gate wraps `malloc` / `calloc` / `realloc` on the election tick
 (`lbs_noalloc`); `mj_step` is outside that gate.

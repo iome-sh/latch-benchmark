@@ -331,17 +331,17 @@ int lbs_replay_oracle_jsonl(const char *path, const char *snapshot_id, int compa
       decision.score = dscore;
       decision.margin = dmargin;
       decision.dwell = ddwell;
-      memset(&applied, 0, sizeof applied);
-      rc = latch_apply_reject(&decision_sense, &apply_sense, &decision, &applied);
-      if (rc != reject) {
-        fprintf(stderr, "FAIL %s apply rc got=%d expected=%d\n", id, rc, reject);
-        out->fails += 1;
-      }
       memset(&fresh, 0, sizeof fresh);
       if (latch_bind(&fresh, &blob) != 0) {
         fprintf(stderr, "FAIL %s apply bind\n", id);
         out->fails += 1;
         continue;
+      }
+      memset(&applied, 0, sizeof applied);
+      rc = latch_apply_reject(&decision_sense, &apply_sense, &decision, &applied);
+      if (rc != reject) {
+        fprintf(stderr, "FAIL %s apply rc got=%d expected=%d\n", id, rc, reject);
+        out->fails += 1;
       }
       latch_evidence(&fresh, &apply_sense, &applied, hex);
       if (match_fields) {
