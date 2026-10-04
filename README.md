@@ -33,7 +33,7 @@ Full definitions: [`docs/SPEC.md`](docs/SPEC.md). Banned Miss KPIs: [`docs/NONGO
 
 **Exists.** L0 **Exists**. L1 MuJoCo mock-oracle **Exists**. Spec / roadmap / honesty docs stay the contract. `harness/mujoco` is a two-rate C harness (MuJoCo fetched at configure, Apache-2.0, not committed).
 
-Public CI prints `BM-01 Latch bit-match 60/60` for `fixtures/latch-robot-1.jsonl` when all 60 rows match. `lbs_verify` and `lbs_soak` recompute that file. The log says this is not a Latch evidence-v2 certificate. `lbs_node_wrap` Passed. A real `liblatch` is optional via `LATCH_LIB_DIR`.
+Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. `lbs_node_wrap` Passed.
 
 A gz-sim server launch ran headless for a fixed iteration count. The world has no Latch plugin. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode.
 
@@ -45,13 +45,13 @@ The one-joint gz job runs that mock-oracle process with --drive-sim. Approach mo
 
 The partner checklist runs that one-joint path. `scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The log prints `gz-sim launched` or `gz-sim did not start`. Yield leaves the setpoint. The partner launch **Exists** as mock-oracle. It is not a Latch certificate.
 
-**Gap.** Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that partner run. Public CI runs `fixtures/latch-robot-1.jsonl` (60 rows) and prints `BM-01 Latch bit-match 60/60` when every row matches. Verify and soak recompute that file. The log says this is not a Latch evidence-v2 certificate. The 10-row mock oracle is a separate fixture. Remaining partner-checklist rows stay **Gap**. No Latch source or proprietary `.so` is committed.
+Partner-launch rows: **Gap**. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. The 10-row mock fixture is separate. No Latch `.so` is committed.
 
 ## How we validate
 
-Two Must paths, one Stretch. The MuJoCo harness runs BM-01..08, BM-12, and the verify/soak replay.
-Public CI prints `BM-01 Latch bit-match 60/60` for `fixtures/latch-robot-1.jsonl` when that recompute matches. The 10-row mock fixture stays a separate run.
-BM-09/10 on public CI recompute that same 60-row file. The log says this is not a Latch evidence certificate.
+Two Must paths, one Stretch. The MuJoCo harness runs BM-01..08 and BM-12.
+Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. The 10-row mock fixture is separate.
+BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**.
 The ROS 2 / gz partner launch runs the one-joint mock-oracle path. It does not run bit-match, chatter, latency, or soak. Those stay on the MuJoCo harness.
 
 | Role | Path | What it is for |

@@ -23,8 +23,9 @@ decimal integers and no spaces:
 `ev2|{snapshot}|{name}|{score}|{margin}|{dwell}|{plane}|{joint}|{limit}|{collision}|{estop}|{contact}|{grasped}|{target_seen}|{sense_age}|{wrench}`
 
 `grasped` is a sense input in that line. Apply rows hash the apply-time sense.
-Snapshot `lbs-mock-oracle` keeps its labeled mock digest. That digest is not
-this payload. This recompute is not a Latch certificate.
+The public mock matches that line for `fixtures/latch-robot-1.jsonl`: **Exists**.
+Snapshot `lbs-mock-oracle` keeps its labeled mock digest.
+BM-09: **Gap**. L2: **Gap**.
 
 ## Non-claims
 

@@ -438,11 +438,13 @@ static void test_tracked_golden(void) {
   if (!path || !path[0]) return;
   rc = lbs_run_oracle_jsonl(path, "latch-robot-1", 1, &run);
   if (rc == 0 && run.fails == 0 && run.rows == 60 && run.illegal == 0) {
-    printf("BM-01 Latch bit-match 60/60\n");
+    printf("BM-01 mock-oracle 60 rows (not Latch 60/60 bit-match)\n");
+    printf("BM-01 60/60 not claimed\n");
     return;
   }
   fprintf(stderr, "BM-01 compared rows=%d fails=%d illegal=%d\n", run.rows, run.fails, run.illegal);
   printf("BM-01 60/60 not claimed\n");
+  g_fail += 1;
 }
 #else
 static void test_real_goldens(void) {

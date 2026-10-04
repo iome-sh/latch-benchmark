@@ -119,29 +119,23 @@ fi
 unset LATCH_LIB_DIR LATCH_LIBRARY LATCH_GOLDENS LATCH_SESSION LATCH_SNAPSHOT_ID
 wire="$(bash "${ROOT}/scripts/public_fixture_wire.sh")"
 if printf '%s\n' "${wire}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
-  if printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed'; then
-    fail "60/60 match also printed not claimed"
-  fi
-  if printf '%s\n' "${wire}" | grep -q 'BM-01 60-row golden: Gap'; then
-    fail "60/60 match also left BM-01 Gap"
-  fi
-else
-  printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed' || fail "public run did not print not claimed"
-  printf '%s\n' "${wire}" | grep -q 'BM-01 60-row golden: Gap' || fail "public run did not leave BM-01 Gap"
+  fail "public mock printed Latch bit-match"
 fi
-if printf '%s\n' "${wire}" | grep -q 'BM-09 replay ran:'; then
-  if printf '%s\n' "${wire}" | grep -q 'BM-09 evidence replay: Gap'; then
-    fail "BM-09 replay also left Gap"
-  fi
-else
-  printf '%s\n' "${wire}" | grep -q 'BM-09 evidence replay: Gap' || fail "BM-09 not Gap"
+printf '%s\n' "${wire}" | grep -qx 'BM-01 mock-oracle 60 rows (not Latch 60/60 bit-match)' || fail "mock 60 recompute missing"
+printf '%s\n' "${wire}" | grep -qx 'BM-01 mock-oracle recompute: Exists' || fail "mock recompute not Exists"
+printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed' || fail "public run did not print not claimed"
+printf '%s\n' "${wire}" | grep -qx 'BM-01 Latch bit-match: Gap' || fail "Latch bit-match not Gap"
+printf '%s\n' "${wire}" | grep -qx 'BM-09: Gap' || fail "BM-09 not Gap"
+printf '%s\n' "${wire}" | grep -qx 'BM-10: Gap' || fail "BM-10 not Gap"
+printf '%s\n' "${wire}" | grep -qx 'L2: Gap' || fail "L2 not Gap"
+if printf '%s\n' "${wire}" | grep -qx 'BM-09: Exists'; then
+  fail "BM-09 marked Exists"
 fi
-if printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak ran:'; then
-  if printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak: Gap'; then
-    fail "BM-10 soak also left Gap"
-  fi
-else
-  printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak: Gap' || fail "BM-10 not Gap"
+if printf '%s\n' "${wire}" | grep -qx 'BM-10: Exists'; then
+  fail "BM-10 marked Exists"
+fi
+if printf '%s\n' "${wire}" | grep -qx 'L2: Exists'; then
+  fail "L2 marked Exists"
 fi
 
 echo "public fixture wire tests passed"

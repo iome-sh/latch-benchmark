@@ -15,13 +15,8 @@ Schema: [`../schemas/golden-jsonl.md`](../schemas/golden-jsonl.md).
 
 ## In this tree
 
-Public CI runs the harness on `fixtures/latch-robot-1.jsonl`. It prints
-`BM-01 Latch bit-match 60/60` only when that run matches all 60 rows.
-Otherwise it prints `BM-01 60/60 not claimed`.
-
-Verify and soak recompute that same file. The current public run matches all
-60 rows, and both tools exit 0. The log still says this is not a Latch
-evidence-v2 certificate. When a recompute fails, BM-09 and BM-10 stay **Gap**.
+Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**.
+BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**.
 
 ## Rules
 

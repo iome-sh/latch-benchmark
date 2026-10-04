@@ -3,8 +3,8 @@
 # Public CI fixture wiring.
 # Tracked *.jsonl files are the only export candidates.
 # A 60-row file with an evidence field is a BM-01 golden candidate.
-# The harness prints BM-01 Latch bit-match 60/60 only when that run matches all 60.
-# Verify and soak are pointed at that same file and clear BM-09/BM-10 only when they recompute it.
+# The mock path may recompute the tracked 60-row file. It does not print a Latch bit-match.
+# BM-09, BM-10, and L2 stay Gap unless a Latch library is linked and the check is not the mock.
 # This script does not write rows, hashes, or evidence.
 set -euo pipefail
 
@@ -169,9 +169,15 @@ run_bm01() {
   fi
   printf '%s\n' "${out}"
   bm01_after_run "${out}"
-  if ! printf '%s\n' "${out}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
-    echo "BM-01 60-row golden: Gap (harness did not match 60 rows)"
+  if printf '%s\n' "${out}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
+    return "${rc}"
   fi
+  if printf '%s\n' "${out}" | grep -qx 'BM-01 mock-oracle 60 rows (not Latch 60/60 bit-match)'; then
+    echo "BM-01 mock-oracle recompute: Exists"
+  else
+    rc=1
+  fi
+  echo "BM-01 Latch bit-match: Gap"
   return "${rc}"
 }
 
@@ -251,13 +257,27 @@ try_recompute_golden() {
   rc=$?
   set -e
   if [[ "${rc}" -ne 0 ]]; then
-    echo "BM-09 evidence replay: Gap (verify did not recompute the tracked golden)"
-    echo "BM-10 two-process soak: Gap (soak did not recompute the tracked golden)"
-    return 0
+    echo "BM-09: Gap"
+    echo "BM-10: Gap"
+    echo "L2: Gap"
+    return 1
   fi
   printf '%s\n' "${out}"
-  echo "BM-09 replay ran: ${golden}"
-  echo "BM-10 two-process soak ran: ${golden}"
+  if [[ -z "${LATCH_LIB_DIR:-}" && -z "${LATCH_LIBRARY:-}" ]]; then
+    echo "BM-09: Gap"
+    echo "BM-10: Gap"
+    echo "L2: Gap"
+    return 0
+  fi
+  if [[ "${out}" == *"not a Latch"* || "${out}" == *"not claimed"* || "${out}" == *"not certified"* ]]; then
+    echo "BM-09: Gap"
+    echo "BM-10: Gap"
+    echo "L2: Gap"
+    return 0
+  fi
+  echo "BM-09: Exists"
+  echo "BM-10: Exists"
+  echo "L2: Exists"
 }
 
 gap_bm01_missing() {
