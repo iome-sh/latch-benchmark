@@ -25,7 +25,7 @@ decimal integers and no spaces:
 `grasped` is a sense input in that line. Apply rows hash the apply-time sense.
 The public mock matches that line for `fixtures/latch-robot-1.jsonl`: **Exists**.
 Snapshot `lbs-mock-oracle` keeps its labeled mock digest.
-BM-09: **Gap**. L2: **Gap** on public CI. When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, verify and soak call that library. BM-09, BM-10, and L2 may be **Exists** only when both match all 60 golden rows. A mock recompute does not mark them Exists. Public CI leaves the library unset.
+BM-09: **Gap**. L2: **Gap** on public CI. When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` through that library and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be **Exists** only for that match. A mock recompute does not mark them Exists. Public CI leaves the library unset.
 
 ## Non-claims
 

@@ -1,16 +1,13 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2026 iome-sh contributors
  *
- * BM-10 soak. Two sequential child execs of this binary replay the same
- * fixture sense stream. Exit 0 only when both emit the same mode name,
- * plane, and evidence for each row. LATCH_SESSION, when set, is that
- * fixture path. LATCH_SNAPSHOT_ID, when set, is the blob id. Unset, the
- * path is the mock-oracle example and the id is lbs-mock-oracle.
- * Public results are mock-oracle.
+ * BM-10 soak. Two child processes replay one fixture. The mock build uses
+ * the in-tree example. A provided library compares LATCH_GOLDENS (else
+ * LATCH_SESSION). Exit 0 only when both children match all 60 rows.
+ * Replaying the in-tree example is not that pass.
  */
 #define _POSIX_C_SOURCE 200809L
 
-#include "latch_abi.h"
 #include "oracle_runner.h"
 
 #include <errno.h>
@@ -35,7 +32,14 @@ static int emit_main(const char *path) {
   OracleRun run;
   const char *snap = NULL;
   snap = getenv("LATCH_SNAPSHOT_ID");
-  if (!snap || !snap[0]) snap = "lbs-mock-oracle";
+  if (!snap || !snap[0]) {
+#if LBS_MOCK_ORACLE
+    snap = "lbs-mock-oracle";
+#else
+    const char *goldens = getenv("LATCH_GOLDENS");
+    snap = (goldens && goldens[0]) ? "latch-robot-1" : "lbs-mock-oracle";
+#endif
+  }
   if (lbs_replay_oracle_jsonl(path, snap, 1, 1, emit_row, NULL, &run) != 0 || run.fails != 0 || run.illegal != 0 ||
       run.rows < 1) {
     fprintf(stderr, "FAIL BM-10 emit rows=%d fails=%d\n", run.rows, run.fails);
@@ -123,37 +127,12 @@ static int provided_fixture(char *path, int cap) {
   const char *goldens = getenv("LATCH_GOLDENS");
   const char *use = NULL;
   int n = 0;
-  if (session && session[0]) use = session;
-  else if (goldens && goldens[0]) use = goldens;
+  if (goldens && goldens[0]) use = goldens;
+  else if (session && session[0]) use = session;
   if (!use) return 0;
   n = snprintf(path, (size_t)cap, "%s", use);
   if (n <= 0 || n >= cap) return -1;
   return 1;
-}
-
-static int touch_provided_library(void) {
-  LatchState state;
-  LatchBlob blob;
-  LatchSense sense;
-  LatchMode mode;
-  LatchMode applied;
-  char hex[17];
-  memset(&state, 0, sizeof state);
-  memset(&blob, 0, sizeof blob);
-  memset(&sense, 0, sizeof sense);
-  memset(&mode, 0, sizeof mode);
-  memset(&applied, 0, sizeof applied);
-  memset(hex, 0, sizeof hex);
-  blob.schema = LATCH_BLOB_SCHEMA;
-  blob.snapshot_id = "latch-robot-1";
-  sense.joint = 20;
-  sense.target_seen = 1;
-  if (latch_bind(&state, &blob) != 0) return 1;
-  if (latch_consider(&sense, &state, 0, &mode) != 0) return 1;
-  latch_evidence(&state, &sense, &mode, hex);
-  if (latch_legal_mask(&sense) == 0) return 1;
-  if (latch_apply_reject(&sense, &sense, &mode, &applied) < -1) return 1;
-  return strlen(hex) == 16 ? 0 : 1;
 }
 #endif
 
@@ -193,12 +172,9 @@ int main(int argc, char **argv) {
       return 1;
     }
     if (kind == 0) {
-      if (touch_provided_library() != 0) {
-        fprintf(stderr, "FAIL BM-10 provided library call\n");
-        return 1;
-      }
-      printf("BM-10 provided library linked; fixture unset — two-process Latch match not claimed\n");
-      return 0;
+      fprintf(stderr, "FAIL BM-10 LATCH_GOLDENS unset; in-tree fixture is not the 60-row compare\n");
+      printf("BM-10 provided library linked; 60-row two-process match not claimed\n");
+      return 1;
     }
   }
 #endif

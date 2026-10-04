@@ -283,6 +283,28 @@ if [[ ! -s "${marker}" ]]; then
   fail "mismatched provided library was not called"
 fi
 assert_calls_library "${ROOT}/build/mujoco-provided-mismatch/lbs_bm" "${probe}/mismatch/liblatch.so"
+set +e
+mismatch_verify="$(env -u LD_LIBRARY_PATH -u LATCH_SESSION -u LATCH_SNAPSHOT_ID -u LATCH_LIB_DIR -u LATCH_LIBRARY \
+  LATCH_GOLDENS="${ROOT}/fixtures/latch-robot-1.jsonl" \
+  "${ROOT}/build/mujoco-provided-mismatch/lbs_verify" 2>&1)"
+mismatch_verify_rc=$?
+mismatch_soak="$(env -u LD_LIBRARY_PATH -u LATCH_SESSION -u LATCH_SNAPSHOT_ID -u LATCH_LIB_DIR -u LATCH_LIBRARY \
+  LATCH_GOLDENS="${ROOT}/fixtures/latch-robot-1.jsonl" \
+  "${ROOT}/build/mujoco-provided-mismatch/lbs_soak" 2>&1)"
+mismatch_soak_rc=$?
+set -e
+if [[ "${mismatch_verify_rc}" -eq 0 || "${mismatch_soak_rc}" -eq 0 ]]; then
+  fail "mismatched library verify/soak exited 0 on the 60-row golden"
+fi
+if printf '%s\n' "${mismatch_verify}" | grep -qx 'BM-09 Latch library evidence match 60 rows'; then
+  fail "mismatched verify printed a 60-row evidence match"
+fi
+if printf '%s\n' "${mismatch_soak}" | grep -qx 'BM-10 Latch library two-process match 60 rows'; then
+  fail "mismatched soak printed a 60-row two-process match"
+fi
+if printf '%s\n' "${mismatch_verify}" "${mismatch_soak}" | grep -F -e 'in-tree fixture replay' -e 'not certified here' -e 'two-process match 10 rows' -e 'not a Latch certificate' >/dev/null; then
+  fail "mismatched verify/soak replayed the in-tree fixture"
+fi
 
 echo "building harness against a matching provided library"
 configure_provided "${ROOT}/build/mujoco-provided-match" "${probe}/match/liblatch.so"
@@ -304,17 +326,51 @@ direct="$(env -u LD_LIBRARY_PATH LATCH_GOLDENS="${ROOT}/fixtures/latch-robot-1.j
 printf '%s\n' "${direct}" | grep -qx 'BM-01 Latch bit-match 60/60' \
   || fail "direct run did not keep the Latch bit-match"
 set +e
-short_verify="$(env -u LD_LIBRARY_PATH \
+gold_verify="$(env -u LD_LIBRARY_PATH -u LATCH_SESSION -u LATCH_SNAPSHOT_ID -u LATCH_LIB_DIR -u LATCH_LIBRARY \
+  LATCH_GOLDENS="${ROOT}/fixtures/latch-robot-1.jsonl" \
+  "${ROOT}/build/mujoco-provided-match/lbs_verify" 2>&1)"
+gold_verify_rc=$?
+gold_soak="$(env -u LD_LIBRARY_PATH -u LATCH_SESSION -u LATCH_SNAPSHOT_ID -u LATCH_LIB_DIR -u LATCH_LIBRARY \
+  LATCH_GOLDENS="${ROOT}/fixtures/latch-robot-1.jsonl" \
+  "${ROOT}/build/mujoco-provided-match/lbs_soak" 2>&1)"
+gold_soak_rc=$?
+bare_verify="$(env -u LD_LIBRARY_PATH -u LATCH_SESSION -u LATCH_SNAPSHOT_ID -u LATCH_GOLDENS -u LATCH_LIB_DIR -u LATCH_LIBRARY \
+  "${ROOT}/build/mujoco-provided-match/lbs_verify" 2>&1)"
+bare_verify_rc=$?
+bare_soak="$(env -u LD_LIBRARY_PATH -u LATCH_SESSION -u LATCH_SNAPSHOT_ID -u LATCH_GOLDENS -u LATCH_LIB_DIR -u LATCH_LIBRARY \
+  "${ROOT}/build/mujoco-provided-match/lbs_soak" 2>&1)"
+bare_soak_rc=$?
+short_verify="$(env -u LD_LIBRARY_PATH -u LATCH_GOLDENS \
   LATCH_SESSION="${ROOT}/harness/mujoco/fixtures/mock-oracle.jsonl.example" \
   LATCH_SNAPSHOT_ID=lbs-mock-oracle \
   "${ROOT}/build/mujoco-provided-match/lbs_verify" 2>&1)"
 short_verify_rc=$?
-short_soak="$(env -u LD_LIBRARY_PATH \
+short_soak="$(env -u LD_LIBRARY_PATH -u LATCH_GOLDENS \
   LATCH_SESSION="${ROOT}/harness/mujoco/fixtures/mock-oracle.jsonl.example" \
   LATCH_SNAPSHOT_ID=lbs-mock-oracle \
   "${ROOT}/build/mujoco-provided-match/lbs_soak" 2>&1)"
 short_soak_rc=$?
 set -e
+if [[ "${gold_verify_rc}" -ne 0 || "${gold_soak_rc}" -ne 0 ]]; then
+  printf '%s\n' "${gold_verify}" "${gold_soak}"
+  fail "LATCH_GOLDENS 60-row compare did not pass through the linked library"
+fi
+printf '%s\n' "${gold_verify}" | grep -qx 'BM-09 Latch library evidence match 60 rows' \
+  || fail "LATCH_GOLDENS verify did not match all 60 rows"
+printf '%s\n' "${gold_soak}" | grep -qx 'BM-10 Latch library two-process match 60 rows' \
+  || fail "LATCH_GOLDENS soak did not match all 60 rows"
+if printf '%s\n' "${gold_verify}" "${gold_soak}" | grep -F -e 'in-tree fixture replay' -e 'not certified here' -e 'two-process match 10 rows' -e 'not a Latch certificate' >/dev/null; then
+  fail "LATCH_GOLDENS compare replayed the in-tree fixture"
+fi
+if [[ "${bare_verify_rc}" -eq 0 || "${bare_soak_rc}" -eq 0 ]]; then
+  fail "linked verify/soak exited 0 without LATCH_GOLDENS"
+fi
+if printf '%s\n' "${bare_verify}" | grep -qx 'BM-09 Latch library evidence match 60 rows'; then
+  fail "verify without LATCH_GOLDENS printed a 60-row evidence match"
+fi
+if printf '%s\n' "${bare_soak}" | grep -qx 'BM-10 Latch library two-process match 60 rows'; then
+  fail "soak without LATCH_GOLDENS printed a 60-row two-process match"
+fi
 if [[ "${short_verify_rc}" -eq 0 || "${short_soak_rc}" -eq 0 ]]; then
   fail "10-row provided-library replay was treated as the 60-row golden"
 fi

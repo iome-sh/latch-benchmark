@@ -28,4 +28,4 @@ BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**.
 
 Optional external library, never vendored in this tree.
 Public Actions must not cache Latch artifacts.
-When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, the harness links that shared library and calls it. `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. BM-09, BM-10, and L2 may be **Exists** only when that library's verify and soak match all 60 golden rows. A mock recompute does not mark them Exists. Public CI leaves the library unset, so they stay **Gap**.
+When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, the harness links that shared library and calls it. `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. With the library linked, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be **Exists** only for that match. A mock recompute does not mark them Exists. Public CI leaves the library unset, so they stay **Gap**.

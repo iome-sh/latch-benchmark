@@ -6,7 +6,9 @@
 # The mock path may recompute the tracked 60-row file. It does not print a Latch bit-match.
 # A provided library (LATCH_LIBRARY or LATCH_LIB_DIR) is linked and called.
 # BM-01 Latch bit-match 60/60 is reported only when that run matches all 60 rows.
-# BM-09, BM-10, and L2 are Exists only when that library's verify and soak match all 60 golden rows.
+# With the library linked, lbs_verify and lbs_soak compare LATCH_GOLDENS and exit 0 only when both match all 60 rows.
+# The in-tree fixture replay does not exit 0.
+# BM-09, BM-10, and L2 are Exists only for that 60-row match.
 # A mock recompute does not mark them Exists. No library leaves them Gap.
 # This script does not write rows, hashes, or evidence.
 set -euo pipefail
