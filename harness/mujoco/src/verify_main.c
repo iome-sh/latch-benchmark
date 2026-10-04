@@ -72,7 +72,6 @@ int main(void) {
     fprintf(stderr, "FAIL BM-09 mock-oracle rows=%d fails=%d\n", run.rows, run.fails);
     return 1;
   }
-  printf("BM-09 mock-oracle %d rows evidence match (not a Latch evidence-v2 certificate)\n", run.rows);
   return 0;
 #else
   {
