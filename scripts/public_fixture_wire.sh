@@ -6,7 +6,8 @@
 # The mock path may recompute the tracked 60-row file. It does not print a Latch bit-match.
 # A provided library (LATCH_LIBRARY or LATCH_LIB_DIR) is linked and called.
 # BM-01 Latch bit-match 60/60 is reported only when that run matches all 60 rows.
-# BM-09, BM-10, and L2 stay Gap unless that same provided library matches the fixture.
+# BM-09, BM-10, and L2 are Exists only when that library's verify and soak match all 60 golden rows.
+# A mock recompute does not mark them Exists. No library leaves them Gap.
 # This script does not write rows, hashes, or evidence.
 set -euo pipefail
 
@@ -243,6 +244,28 @@ run_session() {
   fi
 }
 
+# Exists only for a provided library whose verify and soak both matched 60 rows.
+# Mock text, a shorter match, or an unset library stays Gap.
+report_linked_golden() {
+  local out="$1"
+  local linked=0
+  if [[ -n "${LATCH_LIB_DIR:-}" || -n "${LATCH_LIBRARY:-}" ]]; then
+    linked=1
+  fi
+  if [[ "${linked}" -eq 1 ]] \
+    && printf '%s\n' "${out}" | grep -qx 'BM-09 Latch library evidence match 60 rows' \
+    && printf '%s\n' "${out}" | grep -qx 'BM-10 Latch library two-process match 60 rows' \
+    && [[ "${out}" != *"not a Latch"* && "${out}" != *"not claimed"* && "${out}" != *"not certified"* ]]; then
+    echo "BM-09: Exists"
+    echo "BM-10: Exists"
+    echo "L2: Exists"
+    return 0
+  fi
+  echo "BM-09: Gap"
+  echo "BM-10: Gap"
+  echo "L2: Gap"
+}
+
 try_recompute_golden() {
   local golden="$1"
   local snap=""
@@ -269,21 +292,7 @@ try_recompute_golden() {
     return 1
   fi
   printf '%s\n' "${out}"
-  if [[ -z "${LATCH_LIB_DIR:-}" && -z "${LATCH_LIBRARY:-}" ]]; then
-    echo "BM-09: Gap"
-    echo "BM-10: Gap"
-    echo "L2: Gap"
-    return 0
-  fi
-  if [[ "${out}" == *"not a Latch"* || "${out}" == *"not claimed"* || "${out}" == *"not certified"* ]]; then
-    echo "BM-09: Gap"
-    echo "BM-10: Gap"
-    echo "L2: Gap"
-    return 0
-  fi
-  echo "BM-09: Exists"
-  echo "BM-10: Exists"
-  echo "L2: Exists"
+  report_linked_golden "${out}"
 }
 
 gap_bm01_missing() {

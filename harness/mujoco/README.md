@@ -70,7 +70,9 @@ LATCH_GOLDENS=/path/to/exported.jsonl cmake --build build/mujoco
 
 `LATCH_LIBRARY` may be a full path instead of `LATCH_LIB_DIR`. The directory of
 a shared library is on the binary runtime search path. `BM-01 Latch bit-match 60/60`
-is printed only when that linked run matches all 60 rows. Without `LATCH_GOLDENS`,
+is printed only when that linked run matches all 60 rows. BM-09, BM-10, and L2
+may be **Exists** only when that library's verify and soak match all 60 golden
+rows. A mock recompute does not mark them Exists. Without `LATCH_GOLDENS`,
 the link does not claim bit-match. Mock score checks are not applied to that
 link. `MUJOCO_DIR` skips the fetch. `-DLATCH_BENCH_ASAN=ON` turns on ASan/UBSan
 when the toolchain ships compiler-rt (MuJoCo's headers include the sanitizer

@@ -110,11 +110,12 @@ int main(void) {
       return 0;
     }
     snap = snapshot_id();
-    if (lbs_run_oracle_jsonl(path, snap, 1, &run) != 0 || run.fails != 0 || run.rows < 1 || run.illegal != 0) {
+    if (lbs_run_oracle_jsonl(path, snap, 1, &run) != 0 || run.fails != 0 || run.rows != 60 || run.illegal != 0) {
       fprintf(stderr, "FAIL BM-09 provided library rows=%d fails=%d illegal=%d\n", run.rows, run.fails, run.illegal);
+      printf("BM-09 provided library linked; 60-row evidence match not claimed\n");
       return 1;
     }
-    printf("BM-09 Latch library evidence match %d rows\n", run.rows);
+    printf("BM-09 Latch library evidence match 60 rows\n");
     return 0;
   }
 #endif

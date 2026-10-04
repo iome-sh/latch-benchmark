@@ -33,7 +33,7 @@ Full definitions: [`docs/SPEC.md`](docs/SPEC.md). Banned Miss KPIs: [`docs/NONGO
 
 **Exists.** L0 **Exists**. L1 MuJoCo mock-oracle **Exists**. Spec / roadmap / honesty docs stay the contract. `harness/mujoco` is a two-rate C harness (MuJoCo fetched at configure, Apache-2.0, not committed).
 
-Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. `lbs_node_wrap` Passed. When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, the harness links that shared library and calls it. `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. Public CI leaves the library unset.
+Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. `lbs_node_wrap` Passed. When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, the harness links that shared library and calls it. `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. BM-09, BM-10, and L2 may be **Exists** only when that library's verify and soak match all 60 golden rows. A mock recompute does not mark them Exists. Public CI leaves the library unset, so they stay **Gap**.
 
 A gz-sim server launch ran headless for a fixed iteration count. The world has no Latch plugin. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode.
 

@@ -91,8 +91,8 @@ Kit-bundled turnkey needs a separate NVIDIA license check. BM-S8 in
 | **BM-06** | `latch_apply_reject` after consider | Same call before controller consume |
 | **BM-07** | Yield leaves `qpos` target; independent stop inject stub | Yield leaves setpoint; `/emergency_stop` still trips |
 | **BM-08** | p50/p99/max `latch_consider` histogram (the CI number) | Second measurement; DDS jitter is outside consider |
-| **BM-09** | **Gap** | **Gap** |
-| **BM-10** | **Gap** | **Gap** |
+| **BM-09** | **Gap** on public CI. **Exists** only when a provided library's verify matches all 60 golden rows. A mock recompute does not mark it Exists. | **Gap** |
+| **BM-10** | **Gap** on public CI. **Exists** only when a provided library's soak matches all 60 golden rows. A mock recompute does not mark it Exists. | **Gap** |
 | **BM-11** | Adapter asserts mode-record fields only | BT.ROS2 Condition is read-only; no activate/deactivate API |
 | **BM-12** | Illegal emission = 0 under soak; ASAN no-alloc on the tick path | Held if the FA soak runs |
 | **BM-S8** | — | — Isaac internal clip only |

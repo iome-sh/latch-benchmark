@@ -241,7 +241,11 @@ int main(int argc, char **argv) {
 #if LBS_MOCK_ORACLE
   printf("BM-10 mock-oracle %d rows two-process match (not a Latch evidence-v2 certificate)\n", rows);
 #else
-  printf("BM-10 Latch library two-process match %d rows\n", rows);
+  if (rows != 60) {
+    printf("BM-10 provided library linked; 60-row two-process match not claimed\n");
+    return 1;
+  }
+  printf("BM-10 Latch library two-process match 60 rows\n");
 #endif
   return 0;
 }
