@@ -428,10 +428,21 @@ static void test_mock_oracle_file(void) {
   rc = lbs_run_oracle_jsonl(path, "lbs-mock-oracle", 1, &run);
   check(rc == 0 && run.fails == 0 && run.rows >= 8 && run.illegal == 0, "BM-01 mock-oracle rows");
   printf("BM-01 mock-oracle %d rows (not Latch 60/60 bit-match)\n", run.rows);
-  if (getenv("LATCH_GOLDENS") && getenv("LATCH_GOLDENS")[0]) {
-    printf("BM-01 exported goldens ignored: mock-oracle cannot certify Latch bit-match (%s)\n", getenv("LATCH_GOLDENS"));
-  }
   done("BM-01 mock-oracle");
+}
+
+static void test_tracked_golden(void) {
+  const char *path = getenv("LATCH_GOLDENS");
+  OracleRun run;
+  int rc = 0;
+  if (!path || !path[0]) return;
+  rc = lbs_run_oracle_jsonl(path, "latch-robot-1", 1, &run);
+  if (rc == 0 && run.fails == 0 && run.rows == 60 && run.illegal == 0) {
+    printf("BM-01 Latch bit-match 60/60\n");
+    return;
+  }
+  fprintf(stderr, "BM-01 compared rows=%d fails=%d illegal=%d\n", run.rows, run.fails, run.illegal);
+  printf("BM-01 60/60 not claimed\n");
 }
 #else
 static void test_real_goldens(void) {
@@ -444,11 +455,12 @@ static void test_real_goldens(void) {
     done("BM-01 real Latch unclaimed");
     return;
   }
-  if (lbs_run_oracle_jsonl(path, "latch-robot-1", 1, &run) != 0 || run.rows < 60 || run.illegal != 0) {
+  if (lbs_run_oracle_jsonl(path, "latch-robot-1", 1, &run) != 0 || run.rows != 60 || run.illegal != 0) {
     fprintf(stderr, "FAIL BM-01 Latch bit-match rows=%d fails=%d illegal=%d\n", run.rows, run.fails, run.illegal);
     g_fail += 1;
+    printf("BM-01 60/60 not claimed\n");
   } else {
-    printf("BM-01 Latch bit-match %d/%d\n", run.rows, run.rows);
+    printf("BM-01 Latch bit-match 60/60\n");
   }
   if (run.chatter_rows > 1) check(run.chatter_flips <= 3, "BM-02 exported chatter flips <= 3");
   if (run.raw_rows > 1) check(run.raw_flips >= 11, "BM-02 exported raw flips >= 11");
@@ -466,6 +478,7 @@ int main(void) {
 #if LBS_MOCK_ORACLE
   test_chatter();
   test_mock_oracle_file();
+  test_tracked_golden();
   printf("oracle=mock\n");
 #else
   test_real_goldens();

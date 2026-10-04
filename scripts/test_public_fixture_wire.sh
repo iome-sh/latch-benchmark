@@ -37,9 +37,14 @@ assert_eq "${out}" "BM-01 60/60 not claimed" "mock disclaimer stays not claimed"
 rows="$(jsonl_data_rows "${ROOT}/${MOCK_REL}")"
 assert_eq "${rows}" "10" "mock oracle row count"
 
+rows="$(jsonl_data_rows "${ROOT}/fixtures/latch-robot-1.jsonl")"
+assert_eq "${rows}" "60" "tracked golden row count"
+
 classify_tracked "${ROOT}"
-assert_eq "${#golden_files[@]}" "0" "this tree has no 60-row export"
-assert_eq "${#session_files[@]}" "0" "this tree has no session export"
+assert_eq "${#golden_files[@]}" "1" "tracked 60-row golden"
+assert_eq "${#session_files[@]}" "0" "golden file is not a session fixture"
+snap="$(snapshot_id_of "${ROOT}/fixtures/latch-robot-1.jsonl")"
+assert_eq "${snap}" "latch-robot-1" "snapshot key"
 
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "${tmp}"; }
@@ -113,12 +118,15 @@ fi
 
 unset LATCH_LIB_DIR LATCH_LIBRARY LATCH_GOLDENS LATCH_SESSION LATCH_SNAPSHOT_ID
 wire="$(bash "${ROOT}/scripts/public_fixture_wire.sh")"
-printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed' || fail "public run did not print not claimed"
-printf '%s\n' "${wire}" | grep -q 'BM-01 60-row golden: Gap' || fail "public run did not leave BM-01 Gap"
-printf '%s\n' "${wire}" | grep -qx 'BM-09 evidence replay: Gap (no tracked exported session fixture the verify path can recompute)' || fail "BM-09 not Gap"
-printf '%s\n' "${wire}" | grep -qx 'BM-10 two-process soak: Gap (no tracked exported session fixture the verify path can recompute)' || fail "BM-10 not Gap"
 if printf '%s\n' "${wire}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
-  fail "public run claimed 60/60"
+  if printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed'; then
+    fail "60/60 match also printed not claimed"
+  fi
+else
+  printf '%s\n' "${wire}" | grep -qx 'BM-01 60/60 not claimed' || fail "public run did not print not claimed"
+  printf '%s\n' "${wire}" | grep -q 'BM-01 60-row golden: Gap' || fail "public run did not leave BM-01 Gap"
 fi
+printf '%s\n' "${wire}" | grep -q 'BM-09 evidence replay: Gap' || fail "BM-09 not Gap"
+printf '%s\n' "${wire}" | grep -q 'BM-10 two-process soak: Gap' || fail "BM-10 not Gap"
 
 echo "public fixture wire tests passed"

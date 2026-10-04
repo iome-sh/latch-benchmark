@@ -13,8 +13,9 @@ dwell, plane, and evidence against the frozen external oracle (60 rows).
 {"id":"...","sense":{...},"name":"...","score":0,"margin":0,"dwell":0,"plane":"...","evidence_hex":"0123456789abcdef"}
 ```
 
-Exact keys follow Latch golden exporter. Session JSONL for BM-09 adds run
-metadata and may include sense stream references for soak (BM-10).
+The tracked file `fixtures/latch-robot-1.jsonl` is flat JSONL. `snapshot` is
+the blob id. `grasped` is a sense input on the row. Session JSONL for BM-09
+adds run metadata and may include sense stream references for soak (BM-10).
 
 ## Fixtures in this repo
 

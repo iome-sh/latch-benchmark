@@ -14,7 +14,7 @@ The evidence for the earlier status check is not in this repository. No Latch `.
 | Public-boundary lint | **Exists** | `scripts/lint_public_boundary.sh` is on main. The docs CI job runs it. |
 | L1 MuJoCo C sources | **Exists** | `harness/mujoco`: ~1 kHz `mj_step`, `latch_consider` at 20 Hz, `latch_apply_reject` before the position setpoint. Mock oracle. |
 | L1 public CI when sources are present | **Exists** | `.github/workflows/ci.yml` takes the cmake branch when sources are present. BM-09 and BM-10 stay **Gap**. The 60-row golden on public CI stays **Gap**. |
-| 60-row golden on public CI | **Gap** | The 60-row golden on public CI stays **Gap**. External library and goldens are not present on public CI. The optional BM-01 step does not claim the 60-row golden and skips configure. `scripts/w2_optional_artifact.sh` builds and runs `lbs_bm` only when a library path and `LATCH_GOLDENS` are both set. |
+| 60-row golden on public CI | **Gap** | `fixtures/latch-robot-1.jsonl` is tracked and public CI runs it. The claim stays **Gap** unless the harness prints `BM-01 Latch bit-match 60/60`. |
 | BM-01..08 and BM-12 | **Exists** (mock-oracle) | Targeted by L1. Public PASS lines are not a Latch oracle certificate. Raw flip counts keep the previous name when a row sets reset, so an alternating raw sequence is not counted as zero. |
 | BM-09 / BM-10 | **Gap** | BM-09 and BM-10 stay **Gap**. This is not a Latch certificate. |
 | L2 evidence verify + soak | **Gap** | BM-09 and BM-10 stay **Gap**. This is not a Latch certificate. |
@@ -24,7 +24,7 @@ The evidence for the earlier status check is not in this repository. No Latch `.
 
 **Next**
 
-1. **Gap** (60-row golden) — external library and goldens are not present on public CI. `scripts/w2_optional_artifact.sh` builds and runs `lbs_bm` only when a library path and `LATCH_GOLDENS` are both set. It configures `harness/mujoco` (`-DLATCH_LIBRARY` when `LATCH_LIBRARY` is a file, otherwise `-DLATCH_LIB_DIR`) and does not claim success before the binary prints the bit-match line. It does not fetch a repository. On public CI both are unset, so the step does not claim the 60-row golden and skips configure. Never an in-tree `.so` and never a public Actions cache. No Latch `.so` is committed. The 60-row golden on public CI stays **Gap**. BM-09 and BM-10 stay **Gap**.
+1. **Gap** (60-row golden) — `fixtures/latch-robot-1.jsonl` is tracked. Public CI runs the harness on it and prints `BM-01 Latch bit-match 60/60` only when that run matches all 60 rows. The claim stays **Gap** until then. Verify and soak leave BM-09 and BM-10 **Gap** when they cannot recompute that file. No Latch `.so` is committed.
 2. **Gap** (partner checklist rows this launch does not run) — bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram. The partner launch **Exists** in this repository. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The evidence of those earlier one-joint Actions runs is not in this repository. Approach moves the sim joint. Yield leaves the setpoint. Latch is not linked. This is not a Latch certificate. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. The 60-row golden on public CI stays **Gap**. BM-09 and BM-10 stay **Gap**. `lbs_node_wrap` is not that launch. A **node** wraps Latch. A physics plugin does not own election.
 
 ## Dual path (locked)
@@ -50,7 +50,7 @@ Sim Must paths are L1 and L3. Isaac is Stretch and never a gate.
 
 Primary CI truth. Headless C harness; no DDS in the gate.
 
-**In this repository:** sources **Exist**. The 60-row golden on public CI stays **Gap**. External library and goldens are not present on public CI. The optional BM-01 step does not claim the 60-row golden and skips configure. BM-01..08 and BM-12 are the L1 targets. BM-09 and BM-10 stay **Gap**.
+**In this repository:** sources **Exist**. `fixtures/latch-robot-1.jsonl` is tracked and public CI runs it. The 60-row claim stays **Gap** unless the harness prints `BM-01 Latch bit-match 60/60`. BM-01..08 and BM-12 are the L1 targets. BM-09 and BM-10 stay **Gap**.
 
 - Two-rate loop (~1 kHz `mj_step` / 10–50 Hz `latch_consider`) — sources in `harness/mujoco`
 - `latch_apply_reject` before setpoint consume

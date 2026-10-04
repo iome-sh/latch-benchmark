@@ -3,8 +3,8 @@
 # Public CI fixture wiring.
 # Tracked *.jsonl files are the only export candidates.
 # A 60-row file with an evidence field is a BM-01 golden candidate.
-# A file with evidence, session, and snapshot_id is a BM-09/BM-10 session candidate.
-# The harness claim line is the only thing that drops "BM-01 60/60 not claimed".
+# The harness prints BM-01 Latch bit-match 60/60 only when that run matches all 60.
+# Verify and soak are pointed at that same file and clear BM-09/BM-10 only when they recompute it.
 # This script does not write rows, hashes, or evidence.
 set -euo pipefail
 
@@ -49,7 +49,7 @@ snapshot_id_of() {
   python3 - "$1" <<'PY'
 import re, sys
 text = open(sys.argv[1], encoding="utf-8").read()
-ids = re.findall(r'"snapshot_id"\s*:\s*"([^"]*)"', text)
+ids = re.findall(r'"(?:snapshot_id|snapshot)"\s*:\s*"([^"]*)"', text)
 ids = [item for item in ids if item]
 if not ids:
     sys.exit(2)
@@ -59,10 +59,13 @@ print(ids[0])
 PY
 }
 
-# Echoes "BM-01 60/60 not claimed" unless a harness line is exactly the 60-row match.
+# Echoes "BM-01 60/60 not claimed" unless the harness already settled the claim.
 bm01_after_run() {
   local out="$1"
   if printf '%s\n' "$out" | grep -qx 'BM-01 Latch bit-match 60/60'; then
+    return 0
+  fi
+  if printf '%s\n' "$out" | grep -qx 'BM-01 60/60 not claimed'; then
     return 0
   fi
   echo "BM-01 60/60 not claimed"
@@ -229,6 +232,34 @@ run_session() {
   fi
 }
 
+try_recompute_golden() {
+  local golden="$1"
+  local snap=""
+  local rc=0
+  local out=""
+  set +e
+  snap="$(snapshot_id_of "${golden}")"
+  rc=$?
+  set -e
+  if [[ "${rc}" -ne 0 || -z "${snap}" ]]; then
+    echo "BM-09 evidence replay: Gap (tracked golden has no single snapshot; not inventing one)"
+    echo "BM-10 two-process soak: Gap (same file, no single snapshot)"
+    return 0
+  fi
+  set +e
+  out="$(run_session_binaries "${golden}" "${snap}" 2>&1)"
+  rc=$?
+  set -e
+  if [[ "${rc}" -ne 0 ]]; then
+    echo "BM-09 evidence replay: Gap (verify did not recompute the tracked golden)"
+    echo "BM-10 two-process soak: Gap (soak did not recompute the tracked golden)"
+    return 0
+  fi
+  printf '%s\n' "${out}"
+  echo "BM-09 replay ran: ${golden}"
+  echo "BM-10 two-process soak ran: ${golden}"
+}
+
 gap_bm01_missing() {
   local rows=0
   rows="$(mock_row_count)"
@@ -270,8 +301,12 @@ main() {
   fi
 
   if [[ "${#session_files[@]}" -eq 0 ]]; then
-    echo "BM-09 evidence replay: Gap (no tracked exported session fixture the verify path can recompute)"
-    echo "BM-10 two-process soak: Gap (no tracked exported session fixture the verify path can recompute)"
+    if [[ "${#golden_files[@]}" -eq 1 ]]; then
+      try_recompute_golden "${golden_files[0]}"
+    else
+      echo "BM-09 evidence replay: Gap (no tracked exported session fixture the verify path can recompute)"
+      echo "BM-10 two-process soak: Gap (no tracked exported session fixture the verify path can recompute)"
+    fi
   elif [[ "${#session_files[@]}" -gt 1 ]]; then
     echo "BM-09 evidence replay: Gap (more than one tracked session fixture)"
     echo "BM-10 two-process soak: Gap (more than one tracked session fixture)"

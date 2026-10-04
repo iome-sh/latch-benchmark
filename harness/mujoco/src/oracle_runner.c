@@ -130,6 +130,17 @@ static void rebind(SeqSlot *slot, const LatchBlob *blob, const char *id, OracleR
   }
 }
 
+/* 1 if this row names a different snapshot, 0 if absent or unchanged, -1 if it does not fit. */
+static int apply_row_snapshot(char *snap_buf, int cap, const char *line) {
+  char row_snap[80];
+  int n = 0;
+  if (!json_string(line, "snapshot", row_snap, (int)sizeof row_snap)) return 0;
+  if (strcmp(snap_buf, row_snap) == 0) return 0;
+  n = snprintf(snap_buf, (size_t)cap, "%s", row_snap);
+  if (n <= 0 || n >= cap) return -1;
+  return 1;
+}
+
 static int hex16(const char *text) {
   int i = 0;
   if (!text || strlen(text) != 16) return 0;
@@ -180,19 +191,27 @@ int lbs_replay_oracle_jsonl(const char *path, const char *snapshot_id, int compa
                             LbsOracleEmit emit, void *user, OracleRun *out) {
   FILE *fp = NULL;
   char line[kLine];
+  char snap_buf[64];
   SeqSlot seqs[kMaxSeq];
   LatchBlob blob;
   OracleRun local;
+  int snap_n = 0;
   if (!out) out = &local;
   memset(out, 0, sizeof *out);
   memset(seqs, 0, sizeof seqs);
   memset(&blob, 0, sizeof blob);
+  memset(snap_buf, 0, sizeof snap_buf);
   if (!path || !snapshot_id) {
     out->fails += 1;
     return out->fails;
   }
+  snap_n = snprintf(snap_buf, sizeof snap_buf, "%s", snapshot_id);
+  if (snap_n <= 0 || (size_t)snap_n >= sizeof snap_buf) {
+    out->fails += 1;
+    return out->fails;
+  }
   blob.schema = LATCH_BLOB_SCHEMA;
-  blob.snapshot_id = snapshot_id;
+  blob.snapshot_id = snap_buf;
   fp = fopen(path, "r");
   if (!fp) {
     fprintf(stderr, "FAIL open oracle %s\n", path);
@@ -211,6 +230,7 @@ int lbs_replay_oracle_jsonl(const char *path, const char *snapshot_id, int compa
     int margin = 0;
     int dwell = 0;
     int have_evidence = 0;
+    int snap_rc = 0;
     if (line[0] == '#' || line[0] == '\n' || line[0] == '\0') continue;
     memset(op, 0, sizeof op);
     memset(id, 0, sizeof id);
@@ -224,6 +244,13 @@ int lbs_replay_oracle_jsonl(const char *path, const char *snapshot_id, int compa
     if (compare_evidence && !have_evidence) {
       fprintf(stderr, "FAIL %s missing evidence\n", id);
       out->fails += 1;
+      continue;
+    }
+    snap_rc = apply_row_snapshot(snap_buf, (int)sizeof snap_buf, line);
+    if (snap_rc < 0) {
+      fprintf(stderr, "FAIL %s snapshot\n", id);
+      out->fails += 1;
+      out->rows += 1;
       continue;
     }
     if (!json_string(line, "name", name_s, (int)sizeof name_s) || !lbs_mode_id(name_s, &name) ||
@@ -255,7 +282,7 @@ int lbs_replay_oracle_jsonl(const char *path, const char *snapshot_id, int compa
         out->fails += 1;
         continue;
       }
-      if (reset || !slot->seen) rebind(slot, &blob, id, out);
+      if (reset || !slot->seen || snap_rc == 1) rebind(slot, &blob, id, out);
       memset(&mode, 0, sizeof mode);
       if (latch_consider(&sense, &slot->state, budget, &mode) != 0) {
         fprintf(stderr, "FAIL %s consider rc\n", id);

@@ -1,6 +1,6 @@
 # MuJoCo harness (L1 Must — primary CI truth)
 
-**Status:** L1 sources **Exist**. Public CI runs the mock oracle. `lbs_verify` and `lbs_soak` ran; the log says this is not a Latch certificate and still printed `not Latch 60/60 bit-match`. The 60-row golden through the bench harness is **Gap** (external library and goldens are not present on public CI). The only committed rows are the 10-row mock oracle, which is not that golden and not an exported session. No Latch `.so` is committed.  
+**Status:** L1 sources **Exist**. Public CI runs the mock oracle. `lbs_verify` and `lbs_soak` ran; the log says this is not a Latch certificate and still printed `not Latch 60/60 bit-match`. Public CI runs `fixtures/latch-robot-1.jsonl` (60 rows). `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60. BM-09 and BM-10 stay **Gap** when verify and soak cannot recompute that file. The 10-row mock oracle is a separate fixture. No Latch `.so` is committed.  
 **Plan:** [`../../docs/INTEGRATION.md`](../../docs/INTEGRATION.md) · metrics [`../../docs/SPEC.md`](../../docs/SPEC.md)
 
 ## Goal

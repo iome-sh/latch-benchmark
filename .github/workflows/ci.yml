@@ -60,6 +60,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -f harness/mujoco/CMakeLists.txt ] && [ -n "$(find harness/mujoco -name '*.c' -o -name '*.cpp' 2>/dev/null | head -1)" ]; then
+            if [ -f fixtures/latch-robot-1.jsonl ]; then
+              export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
+            fi
             cmake -S harness/mujoco -B build/mujoco
             cmake --build build/mujoco
           else
@@ -70,6 +73,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -d build/mujoco ]; then
+            if [ -f fixtures/latch-robot-1.jsonl ]; then
+              export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
+            fi
             bash scripts/fa_checklist_run.sh
           fi
 
