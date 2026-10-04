@@ -1,4 +1,4 @@
-# FA checklist spine (partner FA)
+# Partner checklist
 
 Partner path is **ROS 2 + gz-sim + gz_ros2_control + BT.ROS2 condition**
 (L3 Must). CI truth for the same metrics is the **MuJoCo C harness**
@@ -16,29 +16,28 @@ Approach moves the sim joint. Yield leaves the setpoint. The log prints `gz-sim 
 This run is mock-oracle. It is not a Latch certificate. Latch is not linked.
 
 On that run, the one-arm gz binding, yield leaving the setpoint, and the read-only condition are what the log shows.
-Bit-match, the live evidence path, chatter, stale, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram stay **Gap**.
+Bit-match, the live evidence path, chatter, stale sense, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram stay Gap.
 
-Wrap pattern (`latch_consider` / `latch_apply_reject`), BM→harness map, and
-honesty non-claims: [`docs/INTEGRATION.md`](../docs/INTEGRATION.md).
+How `latch_consider` and `latch_apply_reject` are called, which harness covers each metric, and what this suite does not claim: [`docs/INTEGRATION.md`](../docs/INTEGRATION.md).
 
 Map to LBS Must BM-01..12. Operator signs after run. **Validation path only.**
 
-1. Bit-match goldens (BM-01)
-2. One-arm sim binding 10–50 Hz + live evidence path (BM-09 live)
-3. Chatter / stale / deny / budget / reject demos (BM-02..06)
-4. Yield ≠ stop series + glossary vs monitored standstill (BM-07)
-5. No-torque / not-BT / not-CM (BM-11)
-6. BT-condition reader sees one name
-7. Evidence replay verify CLI (BM-09)
-8. Multi-process soak clip (BM-10)
-9. Acceptance checklist signed by operator (this pack)
-10. Latency histogram artifact (BM-08)
+1. Bit-match against the golden file (BM-01).
+2. One arm in simulation, calling Latch at 10 to 50 Hz, with a live evidence path (BM-09).
+3. Chatter, stale sense, deny, budget, and apply-time reject (BM-02 through BM-06).
+4. Yield leaves the setpoint, and a separate stop still trips (BM-07). Yield is not a protective stop and not a rated stop.
+5. The binding does not command torque, does not run a behavior tree, and does not activate controllers (BM-11).
+6. The behavior-tree condition reads one mode name.
+7. The verify tool recomputes a recorded session (BM-09).
+8. Two processes produce the same result (BM-10).
+9. An operator signs this checklist.
+10. A latency histogram is saved (BM-08).
 
-## Captions (mandatory)
+## What to say with the results
 
-- Not contact-success / grasp-success
-- Yield is leave-setpoint; PLC / e-stop stays in series
-- Not SIL / ISO certification; not a BehaviorTree product
-- Validation harness — not “we ship in Gazebo / Isaac”
+- This is not a contact-success score and not a grasp-success score.
+- Yield means the mode leaves the setpoint. It is not a protective stop and not a rated stop. The separate stop still trips.
+- This is not a SIL or ISO pack, and it is not a behavior tree.
+- This is a validation harness. It is not a claim that the product ships inside Gazebo or Isaac.
 
 BM-S1, BM-S2, and BM-S3 enter only after a cancel-log schema exists.

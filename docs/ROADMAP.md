@@ -1,99 +1,87 @@
-# ROADMAP — Latch Benchmark Suite (L0–L4)
+# Roadmap
 
-**Status (2026-10-03):** L0 **Exists**. L1 mock-oracle **Exists**. Public-boundary lint **Exists**. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. `lbs_node_wrap` Passed. A gz-sim server launch ran headless for a fixed iteration count. The world has no Latch plugin. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode. A separate CI workflow clones BehaviorTree.ROS2 at 72a3bf51dad332c67b99fc3373ccd5242f94f680 and ticks a read-only condition on /latch/mode_name. The condition does not elect and does not publish. Another workflow starts that mock controller and that condition in one job. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs that condition in the same job. Approach on /latch/mode_name moves the sim joint through the position controller. Yield leaves that command. The partner launch **Exists** in this repository. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The evidence of those earlier one-joint Actions runs is not in this repository. Approach moves the sim joint. Yield leaves the setpoint. Latch is not linked. This is not a Latch certificate. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. No Latch `.so` is committed. Remaining partner-checklist rows stay **Gap**.  
-**Validation speech only** — never “we ship in Gazebo / Isaac / MuJoCo.”  
-**Wrap, BM map, non-claims:** [`INTEGRATION.md`](INTEGRATION.md).
+Status as of 2026-10-03.
 
-## Exists / Gap
+The L0 spec Exists. The L1 mock oracle Exists. The public-boundary lint Exists. The mock oracle recomputes `fixtures/latch-robot-1.jsonl`. That recompute Exists. The Latch bit-match is Gap. BM-09, BM-10, and L2 are Gap. `lbs_node_wrap` passed. It links the in-tree mock, and it is not a gz-sim launch.
 
-The evidence for the earlier status check is not in this repository. No Latch `.so` is committed. `latch_mock.c` is the in-tree stand-in, not Latch. An external shared library may be supplied with `LATCH_LIB_DIR` or `LATCH_LIBRARY` and is not committed. When it is supplied, the harness links that file and calls it. `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. With the library linked, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be **Exists** only for that match. A mock recompute does not mark them Exists. Public CI leaves both variables unset and runs the tracked file `fixtures/latch-robot-1.jsonl`.
+No Latch `.so` is committed. `latch_mock.c` is the in-tree stand-in. It is not Latch. An external shared library may be supplied with `LATCH_LIB_DIR` or `LATCH_LIBRARY`. When it is supplied, the harness links that file and calls it. The line `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. With the library linked, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be Exists only for that match. A mock recompute does not mark them Exists. Public CI leaves both variables unset and runs `fixtures/latch-robot-1.jsonl`.
 
-| Item | Verdict | Note |
-|------|---------|------|
-| L0 spec, schemas, OSS spine | **Exists** | Docs lint is green on main. |
-| Public-boundary lint | **Exists** | `scripts/lint_public_boundary.sh` is on main. The docs CI job runs it. |
-| L1 MuJoCo C sources | **Exists** | `harness/mujoco`: ~1 kHz `mj_step`, `latch_consider` at 20 Hz, `latch_apply_reject` before the position setpoint. Mock oracle. |
-| L1 public CI when sources are present | **Exists** | `.github/workflows/ci.yml` takes the cmake branch when sources are present. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. |
-| Mock recompute of `fixtures/latch-robot-1.jsonl` | **Exists** | Public mock recomputes its own 60-row fixture. BM-01 Latch bit-match: **Gap**. |
-| BM-01..08 and BM-12 | **Exists** (mock-oracle) | Targeted by L1. Public PASS lines are not a Latch oracle certificate. Raw flip counts keep the previous name when a row sets reset, so an alternating raw sequence is not counted as zero. |
-| BM-09 / BM-10 | **Gap** | Latch library is unset on public CI. With a library linked, verify and soak compare `LATCH_GOLDENS` and exit 0 only on a 60-row match. The in-tree fixture replay does not exit 0. **Exists** only for that match. A mock recompute does not mark them Exists. |
-| L2 evidence verify + soak | **Gap** | Latch library is unset on public CI. **Exists** only when that same `LATCH_GOLDENS` verify and soak match all 60 rows. A mock recompute does not mark L2 Exists. |
-| `lbs_node_wrap` | **Exists** (mock-oracle) | CI reported `lbs_node_wrap` Passed. It links the in-tree mock oracle. It is not a gz-sim launch. |
-| L3 ROS 2 / gz FA launch | **Exists** | A gz-sim server launch ran headless for a fixed iteration count. The world has no Latch plugin. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode. A separate CI workflow clones BehaviorTree.ROS2 at 72a3bf51dad332c67b99fc3373ccd5242f94f680 and ticks a read-only condition on /latch/mode_name. The condition does not elect and does not publish. Another workflow starts that mock controller and that condition in one job. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs that condition in the same job. Approach on /latch/mode_name moves the sim joint through the position controller. Yield leaves that command. The partner launch **Exists** in this repository. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The evidence of those earlier one-joint Actions runs is not in this repository. Approach moves the sim joint. Yield leaves the setpoint. Latch is not linked. This is not a Latch certificate. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. |
-| `scripts/fa_checklist.md` | **Exists** | `scripts/fa_checklist_run.sh` names the MuJoCo binaries (`lbs_bm`, `lbs_verify`, `lbs_soak`, `lbs_noalloc`). Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. If `build/ros2_gz/lbs_node_wrap` exists it runs that binary and prints that it is mock-oracle, not a gz-sim launch. If that binary is absent it prints that the node wrap binary was not built and the MuJoCo checklist continues. The headless gz-sim server is not the MuJoCo invocation. `scripts/fa_checklist_run.sh partner` runs `harness/ros2_gz/launch_partner.sh` and scores this list against that launch. The MuJoCo invocation does not start gz-sim. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode. A separate CI workflow clones BehaviorTree.ROS2 at 72a3bf51dad332c67b99fc3373ccd5242f94f680 and ticks a read-only condition on /latch/mode_name. The condition does not elect and does not publish. Another workflow starts that mock controller and that condition in one job. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs that condition in the same job. Approach on /latch/mode_name moves the sim joint through the position controller. Yield leaves that command. The partner launch **Exists** in this repository. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The evidence of those earlier one-joint Actions runs is not in this repository. Approach moves the sim joint. Yield leaves the setpoint. Latch is not linked. This is not a Latch certificate. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. |
+A gz-sim server launch has run headless for a fixed number of iterations. That world has no Latch plugin. A separate CI job starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command and does not read the mode. Another job clones BehaviorTree.ROS2 at `72a3bf51dad332c67b99fc3373ccd5242f94f680` and ticks a read-only condition on `/latch/mode_name`. The condition does not elect a mode and does not publish. A later job runs that controller and that condition together.
 
-**Next**
+The partner launch Exists. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs the condition in the same job. Approach on `/latch/mode_name` moves the sim joint. Yield leaves the setpoint. Latch is not linked. The evidence of earlier one-joint Actions runs is not in this repository. This launch is not a Latch certificate. On that run, bit-match, live evidence, chatter, stale sense, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram stay Gap.
 
-1. **Exists** (60-row golden) — `fixtures/latch-robot-1.jsonl` is tracked. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. No Latch `.so` is committed.
-2. **Gap** (partner checklist rows this launch does not run) — bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram. The partner launch **Exists** in this repository. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The evidence of those earlier one-joint Actions runs is not in this repository. Approach moves the sim joint. Yield leaves the setpoint. Latch is not linked. This is not a Latch certificate. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. `lbs_node_wrap` is not that launch. A **node** wraps Latch. A physics plugin does not own election.
+These notes describe the validation path. They are not a claim that the product ships inside Gazebo, Isaac, or MuJoCo. The harness map is in [`INTEGRATION.md`](INTEGRATION.md).
 
-## Dual path (locked)
+## What exists and what is still a gap
+
+| Item | Status | Note |
+|------|--------|------|
+| L0 spec, schemas, and the open-source files | Exists | Docs lint is green on main. |
+| Public-boundary lint | Exists | `scripts/lint_public_boundary.sh` is on main. The docs CI job runs it. |
+| L1 MuJoCo C sources | Exists | `harness/mujoco` steps near 1 kHz, calls `latch_consider` at 20 Hz, and calls `latch_apply_reject` before the position setpoint. This build is the mock oracle. |
+| L1 public CI when sources are present | Exists | `.github/workflows/ci.yml` takes the cmake branch when sources are present. The mock recompute Exists. The Latch bit-match is Gap. BM-09, BM-10, and L2 are Gap. |
+| Mock recompute of `fixtures/latch-robot-1.jsonl` | Exists | The public mock recomputes its own 60-row fixture. The Latch bit-match is Gap. |
+| BM-01 through BM-08, and BM-12 | Exists on the mock oracle | These are the L1 targets. A public pass line is not a Latch oracle result. Raw flip counts keep the previous name when a row sets reset, so an alternating raw sequence is not counted as zero. |
+| BM-09 and BM-10 | Gap | Public CI does not link a Latch library. With a library linked, verify and soak compare `LATCH_GOLDENS` and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. They are Exists only for that match. A mock recompute does not mark them Exists. |
+| L2 evidence verify and soak | Gap | Public CI does not link a Latch library. L2 is Exists only when that same `LATCH_GOLDENS` verify and soak match all 60 rows. A mock recompute does not mark L2 Exists. |
+| `lbs_node_wrap` | Exists as the mock oracle | CI reported that it passed. It links the in-tree mock. It is not a gz-sim launch. |
+| L3 ROS 2 and gz partner launch | Exists | The launch described above. The other checklist rows on that run are Gap. |
+| `scripts/fa_checklist.md` | Exists | `scripts/fa_checklist_run.sh` names `lbs_bm`, `lbs_verify`, `lbs_soak`, and `lbs_noalloc`. The mock recompute Exists. The Latch bit-match is Gap. BM-09, BM-10, and L2 are Gap. If `build/ros2_gz/lbs_node_wrap` exists, the script runs it and prints that it is the mock oracle, not a gz-sim launch. If that binary is absent, the script says so and the MuJoCo checklist continues. The MuJoCo invocation does not start gz-sim. `scripts/fa_checklist_run.sh partner` runs `harness/ros2_gz/launch_partner.sh` and scores the list against that launch. |
+
+The tracked 60-row file Exists. No Latch `.so` is committed with it. The partner checklist rows that this launch does not run are Gap. Those rows are bit-match, live evidence, chatter, stale sense, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram. `lbs_node_wrap` is not that launch. A node wraps Latch. A physics plugin does not elect the mode.
+
+## Two paths
 
 | Role | Stack | Phase | Gate |
 |------|-------|-------|------|
-| **Primary CI truth** | MuJoCo C harness (`harness/mujoco`) — bit-match, chatter, latency, no-alloc | **L1 Must** | Yes |
-| **Primary partner FA** | ROS 2 + gz-sim + gz_ros2_control + BT.ROS2 condition (`harness/ros2_gz`) | **L3 Must** | Yes |
-| **Optional internal** | Isaac clip | **Stretch** (L5 / BM-S8) | No |
+| Primary CI | MuJoCo C harness (`harness/mujoco`): bit-match, chatter, latency, and the allocation check | L1, required | Yes |
+| Partner run | ROS 2, gz-sim, gz_ros2_control, and a BehaviorTree.ROS2 condition (`harness/ros2_gz`) | L3, required | Yes |
+| Optional internal clip | Isaac | Stretch (L5, BM-S8) | No |
 
-Sim Must paths are L1 and L3. Isaac is Stretch and never a gate.
+L1 and L3 are required. Isaac is stretch work and is never a gate.
 
 ## Phases
 
-### L0 — Spec freeze (**Exists**)
+### L0, spec freeze (Exists)
 
-- SPEC / NONGOALS / ADJACENCY / schemas stubs
-- OSS community files (LICENSE Apache-2.0, NOTICE, CoC, SECURITY, CONTRIBUTING)
-- Harness directory stubs at L0; CI docs-lint. The MuJoCo stub was replaced by L1 sources. `harness/ros2_gz` has a mock-oracle node wrap (`lbs_node_wrap` Passed). A gz-sim server launch ran headless for a fixed iteration count. The world has no Latch plugin. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode. A separate CI workflow clones BehaviorTree.ROS2 at 72a3bf51dad332c67b99fc3373ccd5242f94f680 and ticks a read-only condition on /latch/mode_name. The condition does not elect and does not publish. Another workflow starts that mock controller and that condition in one job. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs that condition in the same job. Approach on /latch/mode_name moves the sim joint through the position controller. Yield leaves that command. The partner launch **Exists** in this repository. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The evidence of those earlier one-joint Actions runs is not in this repository. Approach moves the sim joint. Yield leaves the setpoint. Latch is not linked. This is not a Latch certificate. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**.
-- **Exit:** BM IDs frozen; honesty rails copy-pasteable into FA. Met.
+The spec, the banned measures, the nearby-work notes, and the schema stubs are in the tree. The community files are here: the Apache-2.0 license, NOTICE, the code of conduct, SECURITY, and CONTRIBUTING. The original harness directories were stubs. The MuJoCo stub is now the L1 source. `harness/ros2_gz` has the mock node wrap, and `lbs_node_wrap` passed. The partner launch is the one described in the status section.
 
-### L1 — MuJoCo harness CI (**Must**)
+The metric IDs are frozen, and the pass rules can be copied into a partner checklist. That exit is met.
 
-Primary CI truth. Headless C harness; no DDS in the gate.
+### L1, MuJoCo harness on CI (required)
 
-**In this repository:** sources **Exist**. `fixtures/latch-robot-1.jsonl` is tracked. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-01..08 and BM-12 are the L1 targets. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**.
+This is the CI path. It is a headless C harness. DDS is not part of this gate.
 
-- Two-rate loop (~1 kHz `mj_step` / 10–50 Hz `latch_consider`) — sources in `harness/mujoco`
-- `latch_apply_reject` before setpoint consume
-- mode→setpoint table (position only; **no torque path**)
-- BM-01..08 and BM-12 are the L1 targets. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**
-- Private Latch `.so` via internal artifact store (never public cache, never in-tree)
-- **Exit:** primary CI truth green on the reference box with that artifact
+The sources Exist. `fixtures/latch-robot-1.jsonl` is tracked. The mock recompute Exists. The Latch bit-match is Gap. BM-01 through BM-08 and BM-12 are the L1 targets. BM-09, BM-10, and L2 are Gap.
 
-### L2 — Evidence verify + multi-process soak (**Gap**)
+The plant steps near 1 kHz. `latch_consider` runs at 10 to 50 Hz. `latch_apply_reject` runs before the setpoint is used. The mode name selects a position setpoint. There is no torque output. The Latch library, when a run needs it, comes from outside this tree and is not placed on a public cache.
 
-BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**. Public CI does not link a Latch library.
+The exit for this phase is a green CI run on the reference machine with that library.
 
-- verify CLI → BM-09 **Gap**
-- soak ≥2 processes → BM-10 **Gap**
-- Optional BM-S6 (sense jitter) is not in this tree
-- **Exit:** BM-09 **Gap**. BM-10 **Gap**. L2 **Gap**.
+### L2, evidence verify and the two-process soak (Gap)
 
-### L3 — ROS 2 / gz one-arm FA + BT condition (**Must**, launch **Exists**, other rows **Gap**)
+Public CI does not link a Latch library. BM-09 is Gap. BM-10 is Gap. L2 is Gap.
 
-Primary partner FA: ROS 2 + gz-sim + gz_ros2_control + BT.ROS2 condition.
-`lbs_node_wrap` Passed in CI and links the mock oracle. A physics plugin does not own election. A gz-sim server launch ran headless for a fixed iteration count. The world has no Latch plugin. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode. A separate CI workflow clones BehaviorTree.ROS2 at 72a3bf51dad332c67b99fc3373ccd5242f94f680 and ticks a read-only condition on /latch/mode_name. The condition does not elect and does not publish. Another workflow starts that mock controller and that condition in one job. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs that condition in the same job. Approach on /latch/mode_name moves the sim joint through the position controller. Yield leaves that command. The partner launch **Exists** in this repository. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The evidence of those earlier one-joint Actions runs is not in this repository. Approach moves the sim joint. Yield leaves the setpoint. Latch is not linked. This is not a Latch certificate. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**.
+The verify tool is BM-09, and it is Gap. The soak runs at least two processes. That is BM-10, and it is Gap. The optional sense-jitter soak (BM-S6) is not in this tree.
 
-- `latch_consider` @ ~20 Hz; `latch_apply_reject` before controller consume
-- Existing ros2_control maps name → behavior; CM keeps lifecycle
-- Independent `/emergency_stop` (or gz plug) → BM-07 on topics
-- BT.ROS2 Condition read-only → BM-11
-- FA launch + checklist spine (`scripts/fa_checklist.md`)
-- **Exit:** partner-facing path runnable. The partner launch **Exists**. The other checklist rows stay **Gap** on that partner run. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. BM-09: **Gap**. BM-10: **Gap**. L2: **Gap**.
+The exit stays Gap until a linked library's verify and soak both match all 60 rows.
 
-### L4 — Partner acceptance pack
+### L3, ROS 2 and gz partner launch (required; the launch Exists; the other rows are Gap)
 
-- Runbook + artifact bundle under NDA share path
-- Acceptance signature slot
-- **Exit:** partner acceptance pack (validation path)
+This is the partner path: ROS 2, gz-sim, gz_ros2_control, and a BehaviorTree.ROS2 condition. `lbs_node_wrap` passed in CI and links the mock oracle. A physics plugin does not elect the mode. The launch details are in the status section above. Latch is not linked. The launch is not a Latch certificate.
 
-### L5 — Stretch (after Must green)
+`latch_consider` runs at about 20 Hz. `latch_apply_reject` runs before the controller uses the record. The existing ros2_control mapping turns the mode name into a position behavior, and Controller Manager keeps the lifecycle. An independent `/emergency_stop`, or a gz plug, is the BM-07 check on topics. The BehaviorTree.ROS2 condition is read-only, which is the BM-11 check. The checklist is `scripts/fa_checklist.md`.
 
-MCAP export (BM-S4), informative AAT map (BM-S5), BM-S1/S2 override rails.
-**Isaac** internal yield≠stop clip (BM-S8) is Stretch only:
-cinematic / sensor-rich, and it does not block L1, L3, or first partner open.
-Packaging a Kit-bundled turnkey needs a separate NVIDIA license check.
+The partner path can be started. The partner launch Exists. The other checklist rows stay Gap on that run. The mock recompute Exists. The Latch bit-match is Gap. BM-09, BM-10, and L2 are Gap.
+
+### L4, partner acceptance pack
+
+A runbook and an artifact bundle go on the share path used for that partner. There is a place for an acceptance signature. The exit is that pack. It is a validation path.
+
+### L5, stretch work after the required phases are green
+
+MCAP export is BM-S4. An informative audit-trail field map is BM-S5. Override notes are BM-S1 and BM-S2. The Isaac clip (BM-S8) shows yield leaving the setpoint. It is stretch work only. It can be a camera clip or a sensor-rich clip, and it does not block L1, L3, or the first partner open. Packaging a Kit-bundled turnkey needs a separate NVIDIA license check.
 
 ## Latch tree boundary
 
-Proprietary Latch keeps ABI headers, native core, and oracle goldens.
-This repo **consumes** ABI via an optional external library, never vendored in this tree.
+The Latch product keeps its ABI headers, the native core, and the oracle goldens. This repository calls that ABI through an optional external library. The library is not stored in this tree.

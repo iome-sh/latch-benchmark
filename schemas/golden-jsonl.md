@@ -1,6 +1,6 @@
-# Schema — golden JSONL (stub)
+# Golden JSONL
 
-**Status:** documentation stub · oracle goldens live in Latch tree; LBS consumes exports.
+This page is a documentation stub. The oracle goldens live with Latch. This suite consumes exports.
 
 ## Intent
 

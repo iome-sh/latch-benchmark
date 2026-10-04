@@ -1,6 +1,6 @@
-# Schema — mode record (stub)
+# Mode record
 
-**Status:** documentation stub · published by binding / harness; Latch elects.
+This page is a documentation stub. The binding or the harness publishes the record. Latch elects the mode.
 
 ## Intent
 
@@ -22,6 +22,6 @@ torque, no trajectory, no controller activate/deactivate.
 ## Binding rules (BM-11)
 
 - Publish mode-record fields only
-- Map `name` → existing controller behavior table (position setpoints)
+- Map `name` onto the controller's existing behavior table. The outputs are position setpoints.
 - BT kits **read** the name; they do not own election
 - CM / lifecycle remains outside Latch

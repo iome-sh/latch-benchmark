@@ -9,9 +9,11 @@ repository-code: "https://github.com/iome-sh/latch-benchmark"
 license: Apache-2.0
 abstract: >
   Benchmark suite for in-process robot mode-election planes.
-  Measures signed mode-election quality (determinism, chatter damp,
-  consider latency, evidence verify, yield≠stop honesty).
-  Not a grasp-success suite, SIL/ISO cert pack, or BehaviorTree product.
+  Measures whether the elected mode is repeatable, whether the name
+  chatters, how long consider takes, and whether a session can be replayed.
+  Yield means the mode leaves the setpoint. It is not a protective stop
+  and not a rated stop.
+  This is not a grasp-success suite, a SIL or ISO pack, or a behavior tree.
 keywords:
   - robotics
   - mode-election

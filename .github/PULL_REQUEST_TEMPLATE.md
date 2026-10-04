@@ -4,7 +4,7 @@
 
 ## Type
 
-- [ ] Docs / SPEC / honesty
+- [ ] Docs and spec
 - [ ] Schema / fixtures
 - [ ] Harness (mujoco / ros2_gz)
 - [ ] CI / tooling

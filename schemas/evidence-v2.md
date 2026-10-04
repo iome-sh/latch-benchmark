@@ -1,6 +1,6 @@
-# Schema — evidence v2 (stub)
+# Evidence v2
 
-**Status:** documentation stub · wire format owned by Latch core; LBS verifies.
+This page is a documentation stub. Latch core owns the wire format. This suite checks it.
 
 ## Intent
 
@@ -23,9 +23,7 @@ decimal integers and no spaces:
 `ev2|{snapshot}|{name}|{score}|{margin}|{dwell}|{plane}|{joint}|{limit}|{collision}|{estop}|{contact}|{grasped}|{target_seen}|{sense_age}|{wrench}`
 
 `grasped` is a sense input in that line. Apply rows hash the apply-time sense.
-The public mock matches that line for `fixtures/latch-robot-1.jsonl`: **Exists**.
-Snapshot `lbs-mock-oracle` keeps its labeled mock digest.
-BM-09: **Gap**. L2: **Gap** on public CI. When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` through that library and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be **Exists** only for that match. A mock recompute does not mark them Exists. Public CI leaves the library unset.
+The public mock matches that line for `fixtures/latch-robot-1.jsonl`. That match Exists. Snapshot `lbs-mock-oracle` keeps its labeled mock digest. BM-09 and L2 are Gap on public CI. When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` through that library and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be Exists only for that match. A mock recompute does not mark them Exists. Public CI leaves the library unset.
 
 ## Non-claims
 
