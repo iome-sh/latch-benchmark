@@ -6,7 +6,7 @@
 
 ## Exists / Gap
 
-The evidence for the earlier status check is not in this repository. No Latch `.so` is committed. `latch_mock.c` is the in-tree stand-in, not Latch. A private `liblatch` is optional via `find_library` (`LATCH_LIB_DIR` / `LATCH_LIBRARY`) and is not committed. Public CI leaves `LATCH_LIB_DIR` and `LATCH_LIBRARY` unset and runs the tracked file `fixtures/latch-robot-1.jsonl`.
+The evidence for the earlier status check is not in this repository. No Latch `.so` is committed. `latch_mock.c` is the in-tree stand-in, not Latch. An external shared library may be supplied with `LATCH_LIB_DIR` or `LATCH_LIBRARY` and is not committed. When it is supplied, the harness links that file and calls it. `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. Public CI leaves both variables unset and runs the tracked file `fixtures/latch-robot-1.jsonl`.
 
 | Item | Verdict | Note |
 |------|---------|------|

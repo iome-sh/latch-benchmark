@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#if LBS_MOCK_ORACLE
 static int fresh_consider(const LatchSense *sense, LatchMode *out) {
   LatchState state;
   const LatchBlob blob = {LATCH_BLOB_SCHEMA, 0, "lbs-mock-oracle"};
@@ -20,8 +21,14 @@ static int fresh_consider(const LatchSense *sense, LatchMode *out) {
   if (state.has_mode != 0) return 1;
   return latch_consider(sense, &state, 0, out);
 }
+#endif
 
 int main(void) {
+#if !LBS_MOCK_ORACLE
+  printf("mock rank not run\n");
+  printf("provided library linked; mock score table not applied\n");
+  return 0;
+#else
   const LatchSense grasped = {20, 0, 0, 0, 0, 1, 1, 0, 5};
   const LatchSense gone = {20, 0, 0, 0, 0, 0, 0, 0, 5};
   LatchSense stopped = gone;
@@ -57,4 +64,5 @@ int main(void) {
   printf("not Latch\n");
   printf("L3 stays open\n");
   return 0;
+#endif
 }

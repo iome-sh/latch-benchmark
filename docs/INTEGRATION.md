@@ -83,7 +83,7 @@ Kit-bundled turnkey needs a separate NVIDIA license check. BM-S8 in
 
 | ID | MuJoCo C (L1 CI truth) | ROS 2 + gz + BT (L3 partner FA) |
 |----|------------------------|----------------------------------|
-| **BM-01** | Headless goldens runner. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. | Not the bit-match gate |
+| **BM-01** | Headless goldens runner. Mock-oracle recompute of `fixtures/latch-robot-1.jsonl`: **Exists**. BM-01 Latch bit-match: **Gap**. A provided library is called when `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set. The bit-match line is printed only when that run matches. | Not the bit-match gate |
 | **BM-02** | Chatter fixture on contact/wrench noise | FA chatter demo |
 | **BM-03** | Stale fixture (`sense_age ≥ 4` → yield, plane `l2`) | FA stale demo |
 | **BM-04** | Deny fixture (e-stop / collision / joint limit) | FA deny demo |

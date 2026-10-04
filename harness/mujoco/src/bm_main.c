@@ -3,8 +3,8 @@
  *
  * L1 fixture runner for BM-01..08 and BM-12 (illegal count).
  * The no-alloc half of BM-12 is lbs_noalloc.
- * Public CI links the mock oracle. Latch 60/60 bit-match is claimed only
- * when a real liblatch is linked and LATCH_GOLDENS points at an export.
+ * Public CI links the mock oracle. Latch 60/60 bit-match is printed only
+ * when a provided library is linked and that run matches every golden row.
  */
 #include "lbs.h"
 #include "oracle_runner.h"
@@ -34,23 +34,6 @@ static void done(const char *bm) {
   if (g_fail == g_mark) printf("PASS %s\n", bm);
 }
 
-static void blank(LatchSense *s) { memset(s, 0, sizeof *s); }
-
-static void approach_sense(LatchSense *s) {
-  blank(s);
-  s->joint = 20;
-  s->target_seen = 1;
-  s->wrench = 5;
-}
-
-static int bind_new(LatchState *state, LatchBlob *blob) {
-  memset(state, 0, sizeof *state);
-  memset(blob, 0, sizeof *blob);
-  blob->schema = LATCH_BLOB_SCHEMA;
-  blob->snapshot_id = "lbs-mock-oracle";
-  return latch_bind(state, blob);
-}
-
 static void test_setpoint_table(void) {
   double q = 0;
   int leave = 0;
@@ -69,6 +52,24 @@ static void test_setpoint_table(void) {
   check(lbs_mode_to_setpoint(LATCH_HOLD, 0.42, &q, &leave) == 0 && leave == 1 && q == 0.42,
         "BM-07 hold leaves the position target");
   done("BM-07 position table (no torque argument)");
+}
+
+#if LBS_MOCK_ORACLE
+static void blank(LatchSense *s) { memset(s, 0, sizeof *s); }
+
+static void approach_sense(LatchSense *s) {
+  blank(s);
+  s->joint = 20;
+  s->target_seen = 1;
+  s->wrench = 5;
+}
+
+static int bind_new(LatchState *state, LatchBlob *blob) {
+  memset(state, 0, sizeof *state);
+  memset(blob, 0, sizeof *blob);
+  blob->schema = LATCH_BLOB_SCHEMA;
+  blob->snapshot_id = "lbs-mock-oracle";
+  return latch_bind(state, blob);
 }
 
 static void test_direct_planes(void) {
@@ -380,7 +381,6 @@ static void test_yield_stop(void) {
   done("BM-07 yield leaves setpoint; series stop still trips");
 }
 
-#if LBS_MOCK_ORACLE
 static void test_chatter(void) {
   LbsPlant *plant = NULL;
   LbsHooks hooks;
@@ -447,18 +447,51 @@ static void test_tracked_golden(void) {
   g_fail += 1;
 }
 #else
+/* One ABI call so a provided shared library is entered even when no golden is set. */
+static int touch_provided_library(void) {
+  LatchState state;
+  LatchBlob blob;
+  LatchSense sense;
+  LatchMode mode;
+  LatchMode applied;
+  char hex[17];
+  memset(&state, 0, sizeof state);
+  memset(&blob, 0, sizeof blob);
+  memset(&sense, 0, sizeof sense);
+  memset(&mode, 0, sizeof mode);
+  memset(&applied, 0, sizeof applied);
+  memset(hex, 0, sizeof hex);
+  blob.schema = LATCH_BLOB_SCHEMA;
+  blob.snapshot_id = "latch-robot-1";
+  sense.joint = 20;
+  sense.target_seen = 1;
+  if (latch_bind(&state, &blob) != 0) return 1;
+  if (latch_consider(&sense, &state, 0, &mode) != 0) return 1;
+  latch_evidence(&state, &sense, &mode, hex);
+  if (latch_legal_mask(&sense) == 0) return 1;
+  if (latch_apply_reject(&sense, &sense, &mode, &applied) < -1) return 1;
+  if (strlen(hex) != 16) return 1;
+  return 0;
+}
+
 static void test_real_goldens(void) {
   const char *path = getenv("LATCH_GOLDENS");
   OracleRun run;
   mark();
   if (!path || !path[0]) {
-    printf("BM-01 real Latch linked; LATCH_GOLDENS unset — bit-match not claimed\n");
-    printf("BM-02 chatter counts come from the exported golden seqs when LATCH_GOLDENS is set\n");
-    done("BM-01 real Latch unclaimed");
+    if (touch_provided_library() != 0) {
+      fprintf(stderr, "FAIL provided library call\n");
+      g_fail += 1;
+    }
+    printf("BM-01 provided library linked; LATCH_GOLDENS unset — bit-match not claimed\n");
+    printf("BM-01 60/60 not claimed\n");
+    done("BM-01 provided library");
     return;
   }
-  if (lbs_run_oracle_jsonl(path, "latch-robot-1", 1, &run) != 0 || run.rows != 60 || run.illegal != 0) {
-    fprintf(stderr, "FAIL BM-01 Latch bit-match rows=%d fails=%d illegal=%d\n", run.rows, run.fails, run.illegal);
+  memset(&run, 0, sizeof run);
+  if (lbs_run_oracle_jsonl(path, "latch-robot-1", 1, &run) != 0 || run.fails != 0 || run.rows != 60 ||
+      run.illegal != 0) {
+    fprintf(stderr, "FAIL BM-01 compared rows=%d fails=%d illegal=%d\n", run.rows, run.fails, run.illegal);
     g_fail += 1;
     printf("BM-01 60/60 not claimed\n");
   } else {
@@ -466,18 +499,18 @@ static void test_real_goldens(void) {
   }
   if (run.chatter_rows > 1) check(run.chatter_flips <= 3, "BM-02 exported chatter flips <= 3");
   if (run.raw_rows > 1) check(run.raw_flips >= 11, "BM-02 exported raw flips >= 11");
-  done("BM-01/02 exported Latch goldens");
+  done("BM-01 provided library golden");
 }
 #endif
 
 int main(void) {
   test_setpoint_table();
+#if LBS_MOCK_ORACLE
   test_direct_planes();
   test_sense_contacts();
   test_two_rate();
   test_plant_fixtures();
   test_yield_stop();
-#if LBS_MOCK_ORACLE
   test_chatter();
   test_mock_oracle_file();
   test_tracked_golden();

@@ -4,7 +4,9 @@
 # Tracked *.jsonl files are the only export candidates.
 # A 60-row file with an evidence field is a BM-01 golden candidate.
 # The mock path may recompute the tracked 60-row file. It does not print a Latch bit-match.
-# BM-09, BM-10, and L2 stay Gap unless a Latch library is linked and the check is not the mock.
+# A provided library (LATCH_LIBRARY or LATCH_LIB_DIR) is linked and called.
+# BM-01 Latch bit-match 60/60 is reported only when that run matches all 60 rows.
+# BM-09, BM-10, and L2 stay Gap unless that same provided library matches the fixture.
 # This script does not write rows, hashes, or evidence.
 set -euo pipefail
 
@@ -170,6 +172,7 @@ run_bm01() {
   printf '%s\n' "${out}"
   bm01_after_run "${out}"
   if printf '%s\n' "${out}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
+    set +e
     return "${rc}"
   fi
   if printf '%s\n' "${out}" | grep -qx 'BM-01 mock-oracle 60 rows (not Latch 60/60 bit-match)'; then
@@ -178,6 +181,8 @@ run_bm01() {
     rc=1
   fi
   echo "BM-01 Latch bit-match: Gap"
+  # set -e is global. A non-zero return would exit the caller before it records Gap.
+  set +e
   return "${rc}"
 }
 
@@ -260,6 +265,7 @@ try_recompute_golden() {
     echo "BM-09: Gap"
     echo "BM-10: Gap"
     echo "L2: Gap"
+    set +e
     return 1
   fi
   printf '%s\n' "${out}"
@@ -322,7 +328,13 @@ main() {
 
   if [[ "${#session_files[@]}" -eq 0 ]]; then
     if [[ "${#golden_files[@]}" -eq 1 ]]; then
+      set +e
       try_recompute_golden "${golden_files[0]}"
+      rc=$?
+      set -e
+      if [[ "${rc}" -ne 0 && "${status}" -eq 0 ]]; then
+        status="${rc}"
+      fi
     else
       echo "BM-09 evidence replay: Gap (no tracked exported session fixture the verify path can recompute)"
       echo "BM-10 two-process soak: Gap (no tracked exported session fixture the verify path can recompute)"

@@ -46,7 +46,7 @@ at configure time, not committed.
 ## Build
 
 Default configure fetches Apache-2.0 MuJoCo 3.14.0 for linux-x86_64 (not
-committed) and compiles `latch_mock.c` when no private library is set.
+committed) and compiles `latch_mock.c` when no library is set.
 `cmake --build` runs the fixture binaries. `LATCH_BENCH_BUILD_MUJOCO=ON` is
 the default and is not a configure error.
 
@@ -61,16 +61,19 @@ microseconds, and BM-12 illegal=0 are measured against that mock. BM-12's
 alloc gate wraps `malloc` / `calloc` / `realloc` on the election tick
 (`lbs_noalloc`); `mj_step` is outside that gate.
 
-Optional real Latch (still not committed):
+A provided shared library (still not committed) is linked and called:
 
 ```bash
 cmake -S harness/mujoco -B build/mujoco -DLATCH_LIB_DIR=/opt/latch
 LATCH_GOLDENS=/path/to/exported.jsonl cmake --build build/mujoco
 ```
 
-`LATCH_LIBRARY` may be a full path instead of `LATCH_LIB_DIR`. Without
-`LATCH_GOLDENS`, a real link does not claim bit-match. `MUJOCO_DIR` skips the
-fetch. `-DLATCH_BENCH_ASAN=ON` turns on ASan/UBSan when the toolchain ships
-compiler-rt (MuJoCo's headers include the sanitizer interface in that mode).
+`LATCH_LIBRARY` may be a full path instead of `LATCH_LIB_DIR`. The directory of
+a shared library is on the binary runtime search path. `BM-01 Latch bit-match 60/60`
+is printed only when that linked run matches all 60 rows. Without `LATCH_GOLDENS`,
+the link does not claim bit-match. Mock score checks are not applied to that
+link. `MUJOCO_DIR` skips the fetch. `-DLATCH_BENCH_ASAN=ON` turns on ASan/UBSan
+when the toolchain ships compiler-rt (MuJoCo's headers include the sanitizer
+interface in that mode).
 
 Set `-DLATCH_BENCH_BUILD_MUJOCO=OFF` to configure without building targets.

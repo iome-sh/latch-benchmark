@@ -10,6 +10,7 @@
  */
 #define _POSIX_C_SOURCE 200809L
 
+#include "latch_abi.h"
 #include "oracle_runner.h"
 
 #include <errno.h>
@@ -33,13 +34,9 @@ static void emit_row(const char *id, const char *name, const char *plane, const 
 static int emit_main(const char *path) {
   OracleRun run;
   const char *snap = NULL;
-  int match = 0;
   snap = getenv("LATCH_SNAPSHOT_ID");
   if (!snap || !snap[0]) snap = "lbs-mock-oracle";
-#if LBS_MOCK_ORACLE
-  match = 1;
-#endif
-  if (lbs_replay_oracle_jsonl(path, snap, match, match, emit_row, NULL, &run) != 0 || run.fails != 0 ||
+  if (lbs_replay_oracle_jsonl(path, snap, 1, 1, emit_row, NULL, &run) != 0 || run.fails != 0 || run.illegal != 0 ||
       run.rows < 1) {
     fprintf(stderr, "FAIL BM-10 emit rows=%d fails=%d\n", run.rows, run.fails);
     return 1;
@@ -107,6 +104,7 @@ static int count_rows(const char *buf, int n) {
   return rows;
 }
 
+#if LBS_MOCK_ORACLE
 static int fixture_path(char *path, int cap) {
   const char *session = getenv("LATCH_SESSION");
   int n = 0;
@@ -117,6 +115,47 @@ static int fixture_path(char *path, int cap) {
   }
   return n > 0 && n < cap;
 }
+#endif
+
+#if !LBS_MOCK_ORACLE
+static int provided_fixture(char *path, int cap) {
+  const char *session = getenv("LATCH_SESSION");
+  const char *goldens = getenv("LATCH_GOLDENS");
+  const char *use = NULL;
+  int n = 0;
+  if (session && session[0]) use = session;
+  else if (goldens && goldens[0]) use = goldens;
+  if (!use) return 0;
+  n = snprintf(path, (size_t)cap, "%s", use);
+  if (n <= 0 || n >= cap) return -1;
+  return 1;
+}
+
+static int touch_provided_library(void) {
+  LatchState state;
+  LatchBlob blob;
+  LatchSense sense;
+  LatchMode mode;
+  LatchMode applied;
+  char hex[17];
+  memset(&state, 0, sizeof state);
+  memset(&blob, 0, sizeof blob);
+  memset(&sense, 0, sizeof sense);
+  memset(&mode, 0, sizeof mode);
+  memset(&applied, 0, sizeof applied);
+  memset(hex, 0, sizeof hex);
+  blob.schema = LATCH_BLOB_SCHEMA;
+  blob.snapshot_id = "latch-robot-1";
+  sense.joint = 20;
+  sense.target_seen = 1;
+  if (latch_bind(&state, &blob) != 0) return 1;
+  if (latch_consider(&sense, &state, 0, &mode) != 0) return 1;
+  latch_evidence(&state, &sense, &mode, hex);
+  if (latch_legal_mask(&sense) == 0) return 1;
+  if (latch_apply_reject(&sense, &sense, &mode, &applied) < -1) return 1;
+  return strlen(hex) == 16 ? 0 : 1;
+}
+#endif
 
 int main(int argc, char **argv) {
   char path[512];
@@ -136,10 +175,33 @@ int main(int argc, char **argv) {
     if (argc != 3) return 2;
     return emit_main(argv[2]);
   }
+#if LBS_MOCK_ORACLE
   if (!argv[0] || !fixture_path(path, (int)sizeof path)) {
     fprintf(stderr, "FAIL BM-10 fixture path\n");
     return 1;
   }
+#else
+  {
+    int kind = 0;
+    if (!argv[0]) {
+      fprintf(stderr, "FAIL BM-10 exec path\n");
+      return 1;
+    }
+    kind = provided_fixture(path, (int)sizeof path);
+    if (kind < 0) {
+      fprintf(stderr, "FAIL BM-10 fixture path\n");
+      return 1;
+    }
+    if (kind == 0) {
+      if (touch_provided_library() != 0) {
+        fprintf(stderr, "FAIL BM-10 provided library call\n");
+        return 1;
+      }
+      printf("BM-10 provided library linked; fixture unset — two-process Latch match not claimed\n");
+      return 0;
+    }
+  }
+#endif
   self_n = snprintf(self, sizeof self, "%s", argv[0]);
   if (self_n <= 0 || (size_t)self_n >= sizeof self) {
     fprintf(stderr, "FAIL BM-10 exec path\n");
@@ -179,7 +241,7 @@ int main(int argc, char **argv) {
 #if LBS_MOCK_ORACLE
   printf("BM-10 mock-oracle %d rows two-process match (not a Latch evidence-v2 certificate)\n", rows);
 #else
-  printf("BM-10 two-process match %d rows; in-tree fixture is not a Latch certificate\n", rows);
+  printf("BM-10 Latch library two-process match %d rows\n", rows);
 #endif
   return 0;
 }
