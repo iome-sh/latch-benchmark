@@ -45,7 +45,7 @@ The one-joint gz job runs that mock-oracle process with --drive-sim. Approach mo
 
 The partner checklist runs that one-joint path. `scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The log prints `gz-sim launched` or `gz-sim did not start`. Yield leaves the setpoint. The partner launch **Exists** as mock-oracle. It is not a Latch certificate.
 
-**Gap.** L2 verify and soak stay Gap. BM-09 and BM-10 stay Gap. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. **Gap:** the 60-row golden through the bench harness (external library and goldens are not present on public CI). Remaining partner-checklist rows stay **Gap**. No Latch source or proprietary `.so` is committed.
+**Gap.** L2 verify and soak stay Gap. BM-09 and BM-10 stay Gap. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. **Gap:** the 60-row golden through the bench harness (external library and goldens are not present on public CI). The only committed rows are the 10-row mock oracle, which is not that golden and not an exported session. Remaining partner-checklist rows stay **Gap**. No Latch source or proprietary `.so` is committed.
 
 ## How we validate
 

@@ -3,7 +3,10 @@
  *
  * BM-10 soak. Two sequential child execs of this binary replay the same
  * fixture sense stream. Exit 0 only when both emit the same mode name,
- * plane, and evidence for each row. Public results are mock-oracle.
+ * plane, and evidence for each row. LATCH_SESSION, when set, is that
+ * fixture path. LATCH_SNAPSHOT_ID, when set, is the blob id. Unset, the
+ * path is the mock-oracle example and the id is lbs-mock-oracle.
+ * Public results are mock-oracle.
  */
 #define _POSIX_C_SOURCE 200809L
 
@@ -29,11 +32,14 @@ static void emit_row(const char *id, const char *name, const char *plane, const 
 
 static int emit_main(const char *path) {
   OracleRun run;
+  const char *snap = NULL;
   int match = 0;
+  snap = getenv("LATCH_SNAPSHOT_ID");
+  if (!snap || !snap[0]) snap = "lbs-mock-oracle";
 #if LBS_MOCK_ORACLE
   match = 1;
 #endif
-  if (lbs_replay_oracle_jsonl(path, "lbs-mock-oracle", match, match, emit_row, NULL, &run) != 0 || run.fails != 0 ||
+  if (lbs_replay_oracle_jsonl(path, snap, match, match, emit_row, NULL, &run) != 0 || run.fails != 0 ||
       run.rows < 1) {
     fprintf(stderr, "FAIL BM-10 emit rows=%d fails=%d\n", run.rows, run.fails);
     return 1;
@@ -102,7 +108,13 @@ static int count_rows(const char *buf, int n) {
 }
 
 static int fixture_path(char *path, int cap) {
-  int n = snprintf(path, (size_t)cap, "%s/mock-oracle.jsonl.example", LBS_FIXTURE_DIR);
+  const char *session = getenv("LATCH_SESSION");
+  int n = 0;
+  if (session && session[0]) {
+    n = snprintf(path, (size_t)cap, "%s", session);
+  } else {
+    n = snprintf(path, (size_t)cap, "%s/mock-oracle.jsonl.example", LBS_FIXTURE_DIR);
+  }
   return n > 0 && n < cap;
 }
 
