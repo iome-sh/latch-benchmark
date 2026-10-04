@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Run the FA checklist.
 # No arguments: MuJoCo harness binaries. That path does not start gz-sim.
-# `partner`: the ROS 2 / gz one-joint launch. Mock-oracle, not a Latch certificate.
+# `partner`: the ROS 2 / gz one-joint launch. Mock-oracle.
 # build/ros2_gz/lbs_node_wrap, when present, is mock-oracle and not a gz-sim launch.
 set -euo pipefail
 shopt -s nullglob
@@ -92,12 +92,6 @@ if printf '%s\n' "${bm_log}" | grep -qx 'oracle=latch'; then
   else
     echo "checklist lbs_soak: provided library linked; two-process match not claimed"
   fi
-  echo "checklist lbs_noalloc: provided library linked; not a Latch 60/60 certificate"
-else
-  echo "checklist lbs_bm: mock-oracle, not a Latch 60/60 certificate"
-  echo "checklist lbs_verify: mock-oracle, not a Latch 60/60 certificate"
-  echo "checklist lbs_soak: mock-oracle, not a Latch 60/60 certificate"
-  echo "checklist lbs_noalloc: mock-oracle, not a Latch 60/60 certificate"
 fi
 echo "checklist: MuJoCo path only (mock-oracle). This invocation does not start gz-sim."
 
