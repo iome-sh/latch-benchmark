@@ -72,8 +72,8 @@ set_target_properties(mujoco PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${MUJOCO_INCLUDE}"
 )
 
-set(LATCH_LIB_DIR "" CACHE PATH "Private directory containing liblatch.so (never commit the artifact)")
-set(LATCH_LIBRARY "" CACHE FILEPATH "Optional full path to liblatch.so or liblatch.a")
+set(LATCH_LIB_DIR "" CACHE PATH "Directory containing the provided liblatch shared library (never commit the artifact)")
+set(LATCH_LIBRARY "" CACHE FILEPATH "Full path to the provided liblatch.so or liblatch.a")
 if(NOT LATCH_LIB_DIR AND DEFINED ENV{LATCH_LIB_DIR})
   set(LATCH_LIB_DIR "$ENV{LATCH_LIB_DIR}")
 endif()
@@ -88,13 +88,26 @@ endif()
 add_library(latch_headers INTERFACE)
 target_include_directories(latch_headers INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+set(LATCH_RUNTIME_DIR "")
 if(LATCH_LIBRARY)
-  message(STATUS "latch-benchmark mujoco: linking real Latch at ${LATCH_LIBRARY} (bit-match only with LATCH_GOLDENS)")
+  get_filename_component(LATCH_LIBRARY "${LATCH_LIBRARY}" ABSOLUTE)
+  message(STATUS "latch-benchmark mujoco: linking provided library at ${LATCH_LIBRARY}")
+  if(LATCH_LIBRARY MATCHES "\\.(a|lib)$")
+    add_library(latch_imported STATIC IMPORTED)
+  else()
+    add_library(latch_imported SHARED IMPORTED)
+    get_filename_component(LATCH_RUNTIME_DIR "${LATCH_LIBRARY}" DIRECTORY)
+  endif()
+  set_target_properties(latch_imported PROPERTIES IMPORTED_LOCATION "${LATCH_LIBRARY}")
   add_library(latch_oracle INTERFACE)
-  target_link_libraries(latch_oracle INTERFACE "${LATCH_LIBRARY}" latch_headers)
+  target_link_libraries(latch_oracle INTERFACE latch_imported latch_headers)
   target_compile_definitions(latch_oracle INTERFACE LBS_MOCK_ORACLE=0)
+  if(LATCH_RUNTIME_DIR)
+    # The loader must open this file when the binary starts, including cmake --build.
+    target_link_options(latch_oracle INTERFACE "-Wl,-rpath,${LATCH_RUNTIME_DIR}" "-Wl,-z,now")
+  endif()
 else()
-  message(STATUS "latch-benchmark mujoco: no liblatch (LATCH_LIB_DIR unset) — mock-oracle")
+  message(STATUS "latch-benchmark mujoco: no provided library (LATCH_LIB_DIR unset) — mock-oracle")
   add_library(latch_mock STATIC src/latch_mock.c)
   target_link_libraries(latch_mock PUBLIC latch_headers)
   target_compile_options(latch_mock PRIVATE -Wall -Wextra -Wpedantic -Werror)
@@ -121,9 +134,13 @@ target_compile_options(lbs_plant PRIVATE -Wall -Wextra -Wpedantic -Werror)
 function(lbs_binary name)
   add_executable(${name} ${ARGN})
   target_compile_options(${name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  set(_rpath "${MUJOCO_LIB_DIR}")
+  if(LATCH_RUNTIME_DIR)
+    set(_rpath "${MUJOCO_LIB_DIR};${LATCH_RUNTIME_DIR}")
+  endif()
   set_target_properties(${name} PROPERTIES
-    BUILD_RPATH "${MUJOCO_LIB_DIR}"
-    INSTALL_RPATH "${MUJOCO_LIB_DIR}"
+    BUILD_RPATH "${_rpath}"
+    INSTALL_RPATH "${_rpath}"
   )
 endfunction()
 
@@ -160,8 +177,12 @@ add_test(NAME lbs_verify COMMAND lbs_verify)
 add_test(NAME lbs_soak COMMAND lbs_soak)
 add_test(NAME lbs_contact COMMAND lbs_contact)
 add_test(NAME lbs_hand COMMAND lbs_hand)
+set(LBS_LD_LIBRARY_PATH "${MUJOCO_LIB_DIR}")
+if(LATCH_RUNTIME_DIR)
+  set(LBS_LD_LIBRARY_PATH "${LATCH_RUNTIME_DIR}:${MUJOCO_LIB_DIR}")
+endif()
 set_tests_properties(lbs_bm lbs_noalloc lbs_verify lbs_soak lbs_contact lbs_hand PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=${MUJOCO_LIB_DIR}"
+  ENVIRONMENT "LD_LIBRARY_PATH=${LBS_LD_LIBRARY_PATH}"
 )
 
 # Public CI runs `cmake --build` and does not invoke ctest. Run the fixtures
@@ -174,7 +195,7 @@ add_custom_target(lbs_fixtures ALL
   COMMAND lbs_contact
   COMMAND lbs_hand
   DEPENDS lbs_bm lbs_noalloc lbs_verify lbs_soak lbs_contact lbs_hand
-  COMMENT "MuJoCo fixtures (mock-oracle unless liblatch is linked)"
+  COMMENT "MuJoCo fixtures (mock-oracle unless a provided library is linked)"
   USES_TERMINAL
 )
 

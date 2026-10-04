@@ -38,6 +38,9 @@ resolve_bin() {
 }
 
 status=0
+bm_log=""
+verify_log=""
+soak_log=""
 for name in lbs_bm lbs_verify lbs_soak lbs_noalloc; do
   if ! bin="$(resolve_bin "${name}")"; then
     echo "missing binary: ${name} under build/mujoco" >&2
@@ -45,10 +48,20 @@ for name in lbs_bm lbs_verify lbs_soak lbs_noalloc; do
     continue
   fi
   echo "running ${name}: ${bin}"
-  if ! "${bin}"; then
+  set +e
+  log="$("${bin}" 2>&1)"
+  rc=$?
+  set -e
+  printf '%s\n' "${log}"
+  if [[ "${rc}" -ne 0 ]]; then
     echo "binary exited non-zero: ${name}" >&2
     status=1
   fi
+  case "${name}" in
+    lbs_bm) bm_log="${log}" ;;
+    lbs_verify) verify_log="${log}" ;;
+    lbs_soak) soak_log="${log}" ;;
+  esac
 done
 
 wrap="${ROOT}/build/ros2_gz/lbs_node_wrap"
@@ -63,10 +76,29 @@ else
   echo "node wrap binary was not built"
 fi
 
-echo "checklist lbs_bm: mock-oracle, not a Latch 60/60 certificate"
-echo "checklist lbs_verify: mock-oracle, not a Latch 60/60 certificate"
-echo "checklist lbs_soak: mock-oracle, not a Latch 60/60 certificate"
-echo "checklist lbs_noalloc: mock-oracle, not a Latch 60/60 certificate"
+if printf '%s\n' "${bm_log}" | grep -qx 'oracle=latch'; then
+  if printf '%s\n' "${bm_log}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
+    echo "checklist lbs_bm: provided library printed BM-01 Latch bit-match 60/60"
+  else
+    echo "checklist lbs_bm: provided library linked; Latch bit-match not claimed"
+  fi
+  if printf '%s\n' "${verify_log}" | grep -q 'BM-09 Latch library evidence match'; then
+    echo "checklist lbs_verify: provided library evidence match"
+  else
+    echo "checklist lbs_verify: provided library linked; evidence match not claimed"
+  fi
+  if printf '%s\n' "${soak_log}" | grep -q 'BM-10 Latch library two-process match'; then
+    echo "checklist lbs_soak: provided library two-process match"
+  else
+    echo "checklist lbs_soak: provided library linked; two-process match not claimed"
+  fi
+  echo "checklist lbs_noalloc: provided library linked; not a Latch 60/60 certificate"
+else
+  echo "checklist lbs_bm: mock-oracle, not a Latch 60/60 certificate"
+  echo "checklist lbs_verify: mock-oracle, not a Latch 60/60 certificate"
+  echo "checklist lbs_soak: mock-oracle, not a Latch 60/60 certificate"
+  echo "checklist lbs_noalloc: mock-oracle, not a Latch 60/60 certificate"
+fi
 echo "checklist: MuJoCo path only (mock-oracle). This invocation does not start gz-sim."
 
 exit "${status}"

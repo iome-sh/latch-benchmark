@@ -17,7 +17,7 @@ if [[ -z "${lib_dir}" && -z "${library}" ]]; then
 fi
 
 if [[ -z "${goldens}" ]]; then
-  echo "BM-01 private library set but goldens unset; 60/60 not claimed"
+  echo "BM-01 provided library set but goldens unset; 60/60 not claimed"
   exit 0
 fi
 
@@ -64,8 +64,8 @@ out="$("${bin}" 2>&1)"
 rc=$?
 set -e
 printf '%s\n' "${out}"
-if [[ "${out}" != *"BM-01 Latch bit-match"* ]]; then
-  echo "lbs_bm did not print BM-01 Latch bit-match" >&2
+if ! printf '%s\n' "${out}" | grep -qx 'BM-01 Latch bit-match 60/60'; then
+  echo "lbs_bm did not print BM-01 Latch bit-match 60/60" >&2
   exit 1
 fi
 if [[ "${rc}" -ne 0 ]]; then

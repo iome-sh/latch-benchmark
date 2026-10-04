@@ -1,7 +1,6 @@
-# NONGOALS — Miss KPIs banned from LBS
+# Measures this suite does not use
 
-These measures are **wrong product class** for a signed mode-election plane.
-Do not put them in FA scripts, CI gates, decks, or Δ cards.
+These measures describe a different product. Do not put them in partner scripts, CI gates, slides, or the improvement table.
 
 ## Banned metrics
 
@@ -17,10 +16,9 @@ Do not put them in FA scripts, CI gates, decks, or Δ cards.
 - “We ship in Gazebo / Isaac / MuJoCo” as a product claim
 - FlexBE replacement / mission-edit UX / OCS creep
 
-## Banned words in FA copy
+## Words that do not belong in partner copy
 
-`safe yield` · `ISO-aligned stop` · `certified WCET` · `SIL` / `PLd` as Latch
-claims · `protective-stop-as-Latch` · internal ticket-tracker product nouns (banned)
+Do not write "safe yield", "ISO-aligned stop", or "certified WCET". Do not claim SIL or PLd for Latch. Do not describe Latch as a protective stop. Do not use internal ticket-tracker product names.
 
 ## What we measure instead
 

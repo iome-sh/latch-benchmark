@@ -26,6 +26,8 @@ jobs:
             fixtures/README.md scripts/fa_checklist.md \
             scripts/lint_public_boundary.sh \
             scripts/w2_optional_artifact.sh \
+            scripts/public_fixture_wire.sh \
+            scripts/test_public_fixture_wire.sh \
             harness/mujoco/README.md harness/ros2_gz/README.md \
             harness/ros2_gz/launch/partner_fa.launch.py \
             harness/ros2_gz/launch_partner.sh \
@@ -41,11 +43,12 @@ jobs:
       - name: Mode delta unit test
         run: python3 -m unittest harness/ros2_control/test_mode_delta.py
 
-      - name: Optional BM-01 artifact hook
+      - name: Public fixture wiring
         run: |
           set -euo pipefail
-          unset LATCH_LIB_DIR LATCH_LIBRARY LATCH_GOLDENS
-          bash scripts/w2_optional_artifact.sh
+          unset LATCH_LIB_DIR LATCH_LIBRARY LATCH_GOLDENS LATCH_SESSION LATCH_SNAPSHOT_ID
+          bash scripts/test_public_fixture_wire.sh
+          bash scripts/public_fixture_wire.sh
 
   harness-mujoco:
     name: mujoco harness (when present)
@@ -57,6 +60,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -f harness/mujoco/CMakeLists.txt ] && [ -n "$(find harness/mujoco -name '*.c' -o -name '*.cpp' 2>/dev/null | head -1)" ]; then
+            if [ -f fixtures/latch-robot-1.jsonl ]; then
+              export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
+            fi
             cmake -S harness/mujoco -B build/mujoco
             cmake --build build/mujoco
           else
@@ -67,6 +73,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -d build/mujoco ]; then
+            if [ -f fixtures/latch-robot-1.jsonl ]; then
+              export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
+            fi
             bash scripts/fa_checklist_run.sh
           fi
 

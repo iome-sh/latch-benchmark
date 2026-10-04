@@ -1,10 +1,8 @@
-# LBS SPEC v0 — Metric definitions (BM-01..12)
+# Metric definitions (BM-01 through BM-12)
 
-**Status:**
+The L0 spec Exists. The MuJoCo L1 harness Exists as the mock oracle.
 
-**Exists.** L0 frozen (**Exists**). **Implementation:** MuJoCo L1 harness **Exists** as mock-oracle.
-
-MuJoCo CI ran `lbs_verify` and `lbs_soak`, and the log says this is not a Latch certificate. The same log still printed `not Latch 60/60 bit-match`. The optional BM-01 step printed `BM-01 60/60 not claimed` and skipped configure. `lbs_node_wrap` Passed.
+The mock oracle recomputes `fixtures/latch-robot-1.jsonl`. That recompute Exists. The Latch bit-match is Gap. BM-09, BM-10, and L2 are Gap on public CI. `lbs_node_wrap` passed. When `LATCH_LIBRARY` or `LATCH_LIB_DIR` is set, the harness links that shared library and calls it. The line `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. With the library linked, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be Exists only for that match. A mock recompute does not mark them Exists. Public CI leaves the library unset, so they stay Gap.
 
 A gz-sim server launch ran headless for a fixed iteration count. The world has no Latch plugin. A separate CI workflow starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command without reading the mode.
 
@@ -14,45 +12,37 @@ A separate CI workflow clones BehaviorTree.ROS2 at 72a3bf51dad332c67b99fc3373ccd
 
 The one-joint gz job runs that mock-oracle process with --drive-sim. Approach moves the sim joint. E-stop elects yield and leaves the command. It is not Latch. Latch is not linked. The empty world does not elect a mode.
 
-The partner checklist runs that one-joint path. `scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The log prints `gz-sim launched` or `gz-sim did not start`. Yield leaves the setpoint. The partner launch **Exists** as mock-oracle. It is not a Latch certificate.
+The partner checklist runs that one-joint path. `scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The log prints `gz-sim launched` or `gz-sim did not start`. Yield leaves the setpoint. The partner launch Exists as the mock oracle.
 
-**Gap.** L2 verify and soak stay **Gap**. BM-09 and BM-10 stay **Gap**. Bit-match, live evidence, chatter, stale, deny, budget, reject, evidence replay, soak, operator signature, and the latency histogram stay **Gap** on that run. **Gap:** the 60-row golden through the bench harness (external library and goldens are not present on public CI). Remaining partner-checklist rows stay **Gap**. No Latch `.so` is committed.
+The other partner-launch rows are Gap. The mock recompute of `fixtures/latch-robot-1.jsonl` Exists. The Latch bit-match is Gap. BM-09, BM-10, and L2 are Gap. The 10-row mock fixture is a separate file. No Latch `.so` is committed.
 
-**Suite:** Latch Benchmark Suite · Apache-2.0  
-**Atom:** in-process election of one of six modes for an *existing* controller;
-signed mode record; no torque/traj; no hosted model on tick; no alloc on tick;
-PLC/e-stop in series; `yield` = leave setpoint ≠ protective stop / monitored standstill.
+This suite elects one of six modes for a controller that already exists. The result is a signed mode record. The tick does not emit torque or a trajectory, does not host a model, and does not allocate. The plant stop stays on its own path. Yield means the mode leaves the setpoint. It is not a protective stop and not a rated stop.
 
-This SPEC defines **invent-fresh** Must metrics for signed mode-election quality.
-Partial adjacents are cited for buyer speech only — see [`ADJACENCY.md`](ADJACENCY.md).
-Miss KPIs are banned — see [`NONGOALS.md`](NONGOALS.md).
+These are the metrics the suite measures. Nearby work is listed in [`ADJACENCY.md`](ADJACENCY.md). Measures the suite does not use are in [`NONGOALS.md`](NONGOALS.md).
 
-**Honesty:** BM IDs BM-01..12 are frozen after L0. Do not renumber without
-maintainer approval. Pass rules below are design targets; harness code that
-implements them lands in L1–L4 (see [`ROADMAP.md`](ROADMAP.md)). Which harness
-may speak for each ID: [`INTEGRATION.md`](INTEGRATION.md) and the table below.
+BM-01 through BM-12 stay at these numbers. Do not renumber them without maintainer approval. The pass rules below are the targets. Harness code lands in L1 through L4 ([`ROADMAP.md`](ROADMAP.md)). Which harness may speak for each ID is in [`INTEGRATION.md`](INTEGRATION.md) and in the table below.
 
 ---
 
 ## Must metrics
 
-| ID | Metric | Pass rule (v0) | Phase gate | Demo speech |
-|----|--------|----------------|------------|-------------|
-| **BM-01** | Golden bit-match | 60/60 rows: name + score + margin + dwell + plane + evidence hex | L1 | “Oracle frozen.” |
-| **BM-02** | Chatter damp | Chatter fixture: Latch mode flips ≤ 3 (dwell); raw argmax flips ≥ 11 (or documented N); evidence stable across run | L1 | “Noise does not thrash the name.” |
-| **BM-03** | Stale → soft yield | `sense_age ≥ 4` ⇒ yield, plane `l2` (not `deny`) | L1 | “Stale is soft, not e-stop theater.” |
-| **BM-04** | Deny planes | e-stop / collision / joint limit ⇒ yield, plane `deny`; dwell cleared | L1 | “Hard denials named.” |
-| **BM-05** | Budget keep | Over budget ⇒ last legal or hold, plane `budget`; plant stub tick not stalled (see BM-08) | L1 | “Budget never freezes the servo.” |
-| **BM-06** | Apply-time reject | After consider, precondition dies ⇒ hold, plane `reject` via apply-reject path | L1 | “Late death → hold, not stale name.” |
-| **BM-07** | Yield ≠ stop series | Yield leaves setpoint in plant stub; independent stop inject still trips plant; glossary shown | L1–L3 | “Yield is leave-setpoint; PLC stays in series.” |
-| **BM-08** | Consider latency | Report p50/p99/max consider μs under soak; **Must:** max &lt; 1000 μs on reference box (tune per partner HW); budget path does not block plant stub tick | L1 | “Decision plane fits under the servo.” |
-| **BM-09** | Evidence replay | Session JSONL + verify CLI: 100% hash recompute match | L2 | “Why this mode then?” |
-| **BM-10** | Multi-process soak | ≥2 processes, same blob + same sense stream ⇒ identical modes + evidence | L2 | “Determinism clip.” |
-| **BM-11** | No-torque / not-BT / not-CM | Binding publishes mode-record fields only; BT kit is read-only condition; no activate/deactivate API as Latch product | L3 | Honesty exits baked into FA |
-| **BM-12** | Illegal emission = 0 | No illegal mode under mask; property held in soak | L1 | Contract integrity |
+| ID | Metric | Pass rule | Phase | Note |
+|----|--------|-----------|-------|------|
+| **BM-01** | Golden bit-match | All 60 rows match on name, score, margin, dwell, plane, and evidence hex. | L1 | The golden file is the reference. |
+| **BM-02** | Chatter | On the chatter fixture, Latch mode flips are at most 3 because of dwell. Raw argmax flips are at least 11, or the documented N. Evidence stays stable for the run. | L1 | Noise does not keep changing the mode name. |
+| **BM-03** | Stale sense | When `sense_age` is at least 4, the mode is yield on plane `l2`. That is not a deny. | L1 | Stale sense elects yield. It is not an emergency stop. |
+| **BM-04** | Deny | E-stop, collision, or a joint limit elects yield on plane `deny`, and dwell is cleared. | L1 | Those denials are named on the record. |
+| **BM-05** | Budget | Over budget, the mode is the last legal mode or hold, on plane `budget`. The plant tick is not stalled. See BM-08. | L1 | A missed budget does not freeze the servo. |
+| **BM-06** | Apply-time reject | After consider, if a precondition fails, the mode is hold on plane `reject`, through `latch_apply_reject`. | L1 | A late failure becomes hold. The previous name is not left in place. |
+| **BM-07** | Yield and the separate stop | Yield leaves the setpoint in the plant stub. A separate stop input still trips the plant. | L1 through L3 | Yield means the mode leaves the setpoint. It is not a protective stop and not a rated stop. |
+| **BM-08** | Consider latency | Report p50, p99, and max `latch_consider` time in microseconds under soak. On the reference machine the max stays under 1000 microseconds, tuned for partner hardware. The budget path does not block the plant tick. | L1 | The consider call is timed. |
+| **BM-09** | Evidence replay | A session JSONL file and the verify tool recompute every hash. | L2 | The recorded session can be checked later. |
+| **BM-10** | Two-process soak | At least two processes, the same blob, and the same sense stream produce the same modes and the same evidence. | L2 | The two processes agree. |
+| **BM-11** | Record only | The binding publishes mode-record fields only. The behavior-tree kit is a read-only condition. Latch does not activate or deactivate controllers. | L3 | The partner checklist includes this check. |
+| **BM-12** | No illegal mode | No mode is emitted outside the legal mask. The soak holds that property. | L1 | The mask is part of the contract. |
 
-Goldens / oracle bit-match for BM-01 live in the proprietary Latch tree; this
-repo consumes exported fixtures or CI artifacts — never ships Latch source.
+BM-01 bit-match uses the tracked fixture `fixtures/latch-robot-1.jsonl`.
+This repo never ships Latch source.
 
 ---
 
@@ -81,7 +71,9 @@ consumes the name. Detail: [`INTEGRATION.md`](INTEGRATION.md).
 
 ---
 
-## Stretch metrics (labeled; not required to open first partner)
+## Stretch metrics
+
+These are not required before the first partner run.
 
 | ID | Metric | Phase | Note |
 |----|--------|-------|------|
@@ -92,26 +84,26 @@ consumes the name. Detail: [`INTEGRATION.md`](INTEGRATION.md).
 | **BM-S5** | Informative AAT field map | L5 | Docs table only; **no** conformance badge |
 | **BM-S6** | Dual-process soak under sense jitter | L5 | Hardens BM-10 |
 | **BM-S7** | Asymmetric enter/exit margins | L5 | Only if fixture demands |
-| **BM-S8** | Isaac internal yield≠stop clip | Stretch | Internal R&D video only. Not a CI gate. See [`INTEGRATION.md`](INTEGRATION.md). |
+| **BM-S8** | Isaac internal clip of yield leaving the setpoint | Stretch | Internal video only. Not a CI gate. See [`INTEGRATION.md`](INTEGRATION.md). |
 
 BM-S1, BM-S2, and BM-S3 enter FA only after a cancel-log schema exists. Do not fake them early.
 
 ---
 
-## Improvement loop (Δ card)
+## Comparing a release with the previous baseline
 
-Releases that claim “we got better” should report Δ vs prior LBS baseline:
+A release that claims the suite got better should report the change from the previous baseline:
 
 | Signal | Better direction | Gate |
 |--------|------------------|------|
-| Δ flip ratio (raw / Latch) on chatter fixture | ↑ ratio or ↓ Latch flips | BM-02 |
-| Δ p99 consider μs | ↓; max stays &lt; 1000 μs on ref box | BM-08 |
-| illegal = 0 | Must remain 0 | BM-12 |
-| soak N | N ≥ 2; raise over time | BM-10 |
-| verify match % | Must stay 100% | BM-09 |
-| BM-07 series | Pass/fail; never softened | BM-07 |
+| Change in flip ratio (raw divided by Latch) on the chatter fixture | A higher ratio, or fewer Latch flips | BM-02 |
+| Change in p99 consider microseconds | Lower, and max stays under 1000 microseconds on the reference machine | BM-08 |
+| Illegal emissions | Stay at zero | BM-12 |
+| Soak process count | At least 2, and higher over time | BM-10 |
+| Verify match | Stay at 100 percent | BM-09 |
+| Yield and the separate stop | Pass or fail. Do not weaken the check. | BM-07 |
 
-No Miss KPIs on the Δ card.
+Do not put the banned measures on this comparison.
 
 ---
 

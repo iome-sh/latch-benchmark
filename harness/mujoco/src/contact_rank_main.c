@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#if LBS_MOCK_ORACLE
 static int fresh_consider(const LatchSense *sense, LatchMode *out) {
   LatchState state;
   const LatchBlob blob = {LATCH_BLOB_SCHEMA, 0, "lbs-mock-oracle"};
@@ -59,8 +60,14 @@ static int same_state_contact_dwell(void) {
   printf("dwell expired elects grasp\n");
   return 0;
 }
+#endif
 
 int main(void) {
+#if !LBS_MOCK_ORACLE
+  printf("mock rank not run\n");
+  printf("provided library linked; mock score table not applied\n");
+  return 0;
+#else
   const LatchSense low = {20, 0, 0, 0, 0, 0, 1, 0, 5};
   const LatchSense high = {20, 0, 0, 0, 1, 0, 1, 0, 60};
   LatchSense stopped = low;
@@ -97,4 +104,5 @@ int main(void) {
   printf("mock-oracle contact rank\n");
   printf("not Latch\n");
   return 0;
+#endif
 }

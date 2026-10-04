@@ -2,10 +2,10 @@
  * Copyright 2026 iome-sh contributors
  *
  * Thin declarations of the Latch C ABI this harness links.
- * This is not Latch source. The symbols come from a private liblatch
+ * This is not Latch source. The symbols come from a provided shared library
  * (LATCH_LIB_DIR / LATCH_LIBRARY) or from latch_mock.c when that
- * artifact is absent. Layout uses natural SysV alignment so a real
- * liblatch can be linked without this tree shipping Latch code.
+ * artifact is absent. Layout uses natural SysV alignment so a provided
+ * library can be linked without this tree shipping Latch code.
  */
 #ifndef LATCH_ABI_H
 #define LATCH_ABI_H

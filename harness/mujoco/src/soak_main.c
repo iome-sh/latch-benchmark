@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2026 iome-sh contributors
  *
- * BM-10 soak. Two sequential child execs of this binary replay the same
- * fixture sense stream. Exit 0 only when both emit the same mode name,
- * plane, and evidence for each row. Public results are mock-oracle.
+ * BM-10 soak. Two child processes replay one fixture. The mock build uses
+ * the in-tree example. A provided library compares LATCH_GOLDENS (else
+ * LATCH_SESSION). Exit 0 only when both children match all 60 rows.
+ * Replaying the in-tree example is not that pass.
  */
 #define _POSIX_C_SOURCE 200809L
 
@@ -29,11 +30,17 @@ static void emit_row(const char *id, const char *name, const char *plane, const 
 
 static int emit_main(const char *path) {
   OracleRun run;
-  int match = 0;
+  const char *snap = NULL;
+  snap = getenv("LATCH_SNAPSHOT_ID");
+  if (!snap || !snap[0]) {
 #if LBS_MOCK_ORACLE
-  match = 1;
+    snap = "lbs-mock-oracle";
+#else
+    const char *goldens = getenv("LATCH_GOLDENS");
+    snap = (goldens && goldens[0]) ? "latch-robot-1" : "lbs-mock-oracle";
 #endif
-  if (lbs_replay_oracle_jsonl(path, "lbs-mock-oracle", match, match, emit_row, NULL, &run) != 0 || run.fails != 0 ||
+  }
+  if (lbs_replay_oracle_jsonl(path, snap, 1, 1, emit_row, NULL, &run) != 0 || run.fails != 0 || run.illegal != 0 ||
       run.rows < 1) {
     fprintf(stderr, "FAIL BM-10 emit rows=%d fails=%d\n", run.rows, run.fails);
     return 1;
@@ -101,10 +108,33 @@ static int count_rows(const char *buf, int n) {
   return rows;
 }
 
+#if LBS_MOCK_ORACLE
 static int fixture_path(char *path, int cap) {
-  int n = snprintf(path, (size_t)cap, "%s/mock-oracle.jsonl.example", LBS_FIXTURE_DIR);
+  const char *session = getenv("LATCH_SESSION");
+  int n = 0;
+  if (session && session[0]) {
+    n = snprintf(path, (size_t)cap, "%s", session);
+  } else {
+    n = snprintf(path, (size_t)cap, "%s/mock-oracle.jsonl.example", LBS_FIXTURE_DIR);
+  }
   return n > 0 && n < cap;
 }
+#endif
+
+#if !LBS_MOCK_ORACLE
+static int provided_fixture(char *path, int cap) {
+  const char *session = getenv("LATCH_SESSION");
+  const char *goldens = getenv("LATCH_GOLDENS");
+  const char *use = NULL;
+  int n = 0;
+  if (goldens && goldens[0]) use = goldens;
+  else if (session && session[0]) use = session;
+  if (!use) return 0;
+  n = snprintf(path, (size_t)cap, "%s", use);
+  if (n <= 0 || n >= cap) return -1;
+  return 1;
+}
+#endif
 
 int main(int argc, char **argv) {
   char path[512];
@@ -124,10 +154,30 @@ int main(int argc, char **argv) {
     if (argc != 3) return 2;
     return emit_main(argv[2]);
   }
+#if LBS_MOCK_ORACLE
   if (!argv[0] || !fixture_path(path, (int)sizeof path)) {
     fprintf(stderr, "FAIL BM-10 fixture path\n");
     return 1;
   }
+#else
+  {
+    int kind = 0;
+    if (!argv[0]) {
+      fprintf(stderr, "FAIL BM-10 exec path\n");
+      return 1;
+    }
+    kind = provided_fixture(path, (int)sizeof path);
+    if (kind < 0) {
+      fprintf(stderr, "FAIL BM-10 fixture path\n");
+      return 1;
+    }
+    if (kind == 0) {
+      fprintf(stderr, "FAIL BM-10 LATCH_GOLDENS unset; in-tree fixture is not the 60-row compare\n");
+      printf("BM-10 provided library linked; 60-row two-process match not claimed\n");
+      return 1;
+    }
+  }
+#endif
   self_n = snprintf(self, sizeof self, "%s", argv[0]);
   if (self_n <= 0 || (size_t)self_n >= sizeof self) {
     fprintf(stderr, "FAIL BM-10 exec path\n");
@@ -167,7 +217,11 @@ int main(int argc, char **argv) {
 #if LBS_MOCK_ORACLE
   printf("BM-10 mock-oracle %d rows two-process match (not a Latch evidence-v2 certificate)\n", rows);
 #else
-  printf("BM-10 two-process match %d rows; in-tree fixture is not a Latch certificate\n", rows);
+  if (rows != 60) {
+    printf("BM-10 provided library linked; 60-row two-process match not claimed\n");
+    return 1;
+  }
+  printf("BM-10 Latch library two-process match 60 rows\n");
 #endif
   return 0;
 }
