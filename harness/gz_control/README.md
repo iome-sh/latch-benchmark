@@ -8,7 +8,7 @@ read-only condition share `/latch/mode_name` in that job.
 Latch is not linked. `harness/ros2_gz/worlds/empty.sdf` is unchanged and still
 does not elect a mode. The partner checklist calls this sequence through
 `harness/ros2_gz/launch_partner.sh`. Yield leaves the setpoint. This is
-mock-oracle, not a Latch certificate. Checklist rows this run does not cover
+mock-oracle. Checklist rows this run does not cover
 stay Gap.
 
 The one-joint job's mock-oracle process keeps approach for three ticks when

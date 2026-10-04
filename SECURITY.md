@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes apply to `main`. The L1 MuJoCo harness is on `main`. The current harness status is in the README. The partner launch Exists as the mock oracle and is not a Latch certificate. The checklist rows that launch does not run are Gap.
+Security fixes apply to `main`. The L1 MuJoCo harness is on `main`. The current harness status is in the README. The partner launch Exists as the mock oracle. The checklist rows that launch does not run are Gap.
 
 ## Reporting a vulnerability
 

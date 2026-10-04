@@ -1,7 +1,7 @@
 # Third-party notices
 
 MuJoCo is fetched at configure time for the L1 harness. It is not committed.
-The partner launch Exists as the mock oracle. It is not a Latch certificate. The checklist rows that launch does not run are Gap. gz-sim is not vendored.
+The partner launch Exists as the mock oracle. The checklist rows that launch does not run are Gap. gz-sim is not vendored.
 
 ## Fetched at build (not vendored)
 

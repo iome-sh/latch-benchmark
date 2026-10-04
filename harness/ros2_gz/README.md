@@ -1,6 +1,6 @@
 # ROS 2 and gz partner path
 
-`lbs_node_wrap` passed in CI as the mock oracle. The server launch and the one-joint partner launch are described below. Latch is not linked. The partner launch Exists as the mock oracle. It is not a Latch certificate. The checklist rows that launch does not run are Gap. No Latch `.so` is committed.  
+`lbs_node_wrap` passed in CI as the mock oracle. The server launch and the one-joint partner launch are described below. Latch is not linked. The partner launch Exists as the mock oracle. The checklist rows that launch does not run are Gap. No Latch `.so` is committed.  
 How the harnesses fit together is in [`../../docs/INTEGRATION.md`](../../docs/INTEGRATION.md). The checklist is [`../../scripts/fa_checklist.md`](../../scripts/fa_checklist.md).
 
 ## Server launch
@@ -16,7 +16,7 @@ start ros2_control or the BT condition. The partner run is `launch_partner.sh`.
 `launch_partner.sh` is the partner command. `scripts/fa_checklist_run.sh partner` calls it.
 The script starts `launch/partner_fa.launch.py` (headless gz-sim, the clock bridge, and `robot_state_publisher`) and then the existing one-joint sequence in `harness/gz_control/launch_one.sh`: spawn, forward position controller, mode mapper, read-only condition, and `latch_mock_elect --drive-sim`.
 Approach moves the sim joint. Yield leaves the setpoint. The log prints `gz-sim launched` or `gz-sim did not start`.
-This is mock-oracle. It is not a Latch certificate. Latch is not linked.
+This is mock-oracle. Latch is not linked.
 Bit-match, the live evidence path, chatter, stale, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram stay Gap on that run.
 
 ## Stack

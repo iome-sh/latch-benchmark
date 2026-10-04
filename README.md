@@ -43,7 +43,7 @@ Another CI job clones BehaviorTree.ROS2 at `72a3bf51dad332c67b99fc3373ccd5242f94
 
 The one-joint partner launch Exists. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs the condition in the same job. Approach on `/latch/mode_name` moves the sim joint. Yield leaves that command. The job runs the mock-oracle process with `--drive-sim`. An e-stop elects yield and leaves the command. Latch is not linked. The empty world does not elect a mode.
 
-`scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The log prints `gz-sim launched` or `gz-sim did not start`. Yield leaves the setpoint. That launch is the mock oracle. It is not a Latch certificate.
+`scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. The log prints `gz-sim launched` or `gz-sim did not start`. Yield leaves the setpoint. That launch is the mock oracle.
 
 On that partner run, bit-match, live evidence, chatter, stale sense, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram are Gap. The 10-row mock fixture is a separate file. No Latch `.so` is committed. `lbs_node_wrap` passed in CI. It links the in-tree mock, and it is not a gz-sim launch.
 

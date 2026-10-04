@@ -13,7 +13,7 @@ The MuJoCo CI job runs that script after the build. That invocation does not sta
 [`../harness/ros2_gz/launch/partner_fa.launch.py`](../harness/ros2_gz/launch/partner_fa.launch.py)
 and then the existing one-joint path: position controller, mode mapper, read-only condition, and the mock-oracle drive.
 Approach moves the sim joint. Yield leaves the setpoint. The log prints `gz-sim launched` or `gz-sim did not start`.
-This run is mock-oracle. It is not a Latch certificate. Latch is not linked.
+This run is mock-oracle. Latch is not linked.
 
 On that run, the one-arm gz binding, yield leaving the setpoint, and the read-only condition are what the log shows.
 Bit-match, the live evidence path, chatter, stale sense, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram stay Gap.

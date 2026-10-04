@@ -33,7 +33,7 @@ Single process, two rates.
 
 `lbs_contact` elects grasp from contact plus a high wrench, approach from a seen target with a low wrench, and yield from e-stop. The same state keeps approach for three dwell ticks when contact and a high wrench arrive, then elects grasp. It is the mock oracle. This binary does not start gz-sim.
 
-The partner path for the same metrics is `harness/ros2_gz`, which L3 requires. `lbs_node_wrap` passed as the mock oracle. That launch Exists. Yield leaves the setpoint. Latch is not linked. It is not a Latch certificate. The checklist rows that launch does not run are Gap. Isaac is stretch work and is not this gate.
+The partner path for the same metrics is `harness/ros2_gz`, which L3 requires. `lbs_node_wrap` passed as the mock oracle. That launch Exists. Yield leaves the setpoint. Latch is not linked. The checklist rows that launch does not run are Gap. Isaac is stretch work and is not this gate.
 
 ## No Latch `.so` in-tree
 

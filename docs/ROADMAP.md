@@ -8,7 +8,7 @@ No Latch `.so` is committed. `latch_mock.c` is the in-tree stand-in. It is not L
 
 A gz-sim server launch has run headless for a fixed number of iterations. That world has no Latch plugin. A separate CI job starts a ros2_control forward position controller on mock hardware. Yield leaves that command. An emergency stop holds the command and does not read the mode. Another job clones BehaviorTree.ROS2 at `72a3bf51dad332c67b99fc3373ccd5242f94f680` and ticks a read-only condition on `/latch/mode_name`. The condition does not elect a mode and does not publish. A later job runs that controller and that condition together.
 
-The partner launch Exists. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs the condition in the same job. Approach on `/latch/mode_name` moves the sim joint. Yield leaves the setpoint. Latch is not linked. The evidence of earlier one-joint Actions runs is not in this repository. This launch is not a Latch certificate. On that run, bit-match, live evidence, chatter, stale sense, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram stay Gap.
+The partner launch Exists. It starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. A gz_ros2_control job spawns one prismatic joint, loads the same position controller, and runs the condition in the same job. Approach on `/latch/mode_name` moves the sim joint. Yield leaves the setpoint. Latch is not linked. The evidence of earlier one-joint Actions runs is not in this repository. On that run, bit-match, live evidence, chatter, stale sense, deny, budget, reject, evidence replay, soak, the operator signature, and the latency histogram stay Gap.
 
 These notes describe the validation path. They are not a claim that the product ships inside Gazebo, Isaac, or MuJoCo. The harness map is in [`INTEGRATION.md`](INTEGRATION.md).
 
@@ -68,7 +68,7 @@ The exit stays Gap until a linked library's verify and soak both match all 60 ro
 
 ### L3, ROS 2 and gz partner launch (required; the launch Exists; the other rows are Gap)
 
-This is the partner path: ROS 2, gz-sim, gz_ros2_control, and a BehaviorTree.ROS2 condition. `lbs_node_wrap` passed in CI and links the mock oracle. A physics plugin does not elect the mode. The launch details are in the status section above. Latch is not linked. The launch is not a Latch certificate.
+This is the partner path: ROS 2, gz-sim, gz_ros2_control, and a BehaviorTree.ROS2 condition. `lbs_node_wrap` passed in CI and links the mock oracle. A physics plugin does not elect the mode. The launch details are in the status section above. Latch is not linked.
 
 `latch_consider` runs at about 20 Hz. `latch_apply_reject` runs before the controller uses the record. The existing ros2_control mapping turns the mode name into a position behavior, and Controller Manager keeps the lifecycle. An independent `/emergency_stop`, or a gz plug, is the BM-07 check on topics. The BehaviorTree.ROS2 condition is read-only, which is the BM-11 check. The checklist is `scripts/fa_checklist.md`.
 

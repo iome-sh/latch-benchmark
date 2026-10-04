@@ -25,7 +25,7 @@ harness** — not Latch core.
 
 The MuJoCo harness is `harness/mujoco/`. It uses the mock oracle unless `LATCH_LIB_DIR` or `LATCH_LIBRARY` is set. A provided library is linked and called. The line `BM-01 Latch bit-match 60/60` is printed only when that run matches all 60 rows. With the library linked, `lbs_verify` and `lbs_soak` compare `LATCH_GOLDENS` and exit 0 only when both match all 60 rows. The in-tree fixture replay does not exit 0. BM-09, BM-10, and L2 may be Exists only for that match. A mock recompute does not mark them Exists.
 
-The ROS 2 and gz path is `harness/ros2_gz/`. `lbs_node_wrap` passed as the mock oracle. The partner launch Exists. `scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. Yield leaves the setpoint. Latch is not linked. That launch is not a Latch certificate. The other checklist rows on that run are Gap. The current status is in the README.
+The ROS 2 and gz path is `harness/ros2_gz/`. `lbs_node_wrap` passed as the mock oracle. The partner launch Exists. `scripts/fa_checklist_run.sh partner` starts `harness/ros2_gz/launch_partner.sh`, which starts gz-sim through `harness/ros2_gz/launch/partner_fa.launch.py`. Yield leaves the setpoint. Latch is not linked. The other checklist rows on that run are Gap. The current status is in the README.
 
 CI is `.github/workflows/ci.yml`. It lints the docs, builds the MuJoCo harness when C or C++ sources are present, and runs `lbs_node_wrap`. The mock recompute of `fixtures/latch-robot-1.jsonl` Exists. The Latch bit-match is Gap. BM-09, BM-10, and L2 are Gap.
 
