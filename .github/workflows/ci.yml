@@ -51,49 +51,66 @@ jobs:
           bash scripts/public_fixture_wire.sh
 
   harness-mujoco:
-    name: mujoco harness (when present)
+    name: mujoco harness
     runs-on: ubuntu-latest
     needs: docs-lint
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Build stub if sources exist
+
+      - name: Require harness sources
         run: |
           set -euo pipefail
-          if [ -f harness/mujoco/CMakeLists.txt ] && [ -n "$(find harness/mujoco -name '*.c' -o -name '*.cpp' 2>/dev/null | head -1)" ]; then
-            if [ -f fixtures/latch-robot-1.jsonl ]; then
-              export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
-            fi
-            cmake -S harness/mujoco -B build/mujoco
-            cmake --build build/mujoco
-          else
-            echo "MuJoCo harness sources not present yet — stub skip (L1 pending)"
+          missing=0
+          for f in harness/mujoco/CMakeLists.txt scripts/fa_checklist_run.sh; do
+            test -f "$f" || { echo "::error::missing required source: $f"; missing=1; }
+          done
+          if [ -z "$(find harness/mujoco/src -name '*.c' 2>/dev/null | head -1)" ]; then
+            echo "::error::missing required sources: harness/mujoco/src/*.c"
+            missing=1
           fi
+          exit "$missing"
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          if [ -f fixtures/latch-robot-1.jsonl ]; then
+            export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
+          fi
+          cmake -S harness/mujoco -B build/mujoco
+          cmake --build build/mujoco
 
       - name: FA checklist script
         run: |
           set -euo pipefail
-          if [ -d build/mujoco ]; then
-            if [ -f fixtures/latch-robot-1.jsonl ]; then
-              export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
-            fi
-            bash scripts/fa_checklist_run.sh
+          if [ -f fixtures/latch-robot-1.jsonl ]; then
+            export LATCH_GOLDENS="${PWD}/fixtures/latch-robot-1.jsonl"
           fi
+          bash scripts/fa_checklist_run.sh
 
   harness-ros2-gz:
-    name: ros2_gz package stub (when present)
+    name: ros2_gz harness
     runs-on: ubuntu-latest
     needs: docs-lint
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Check package.xml presence
+
+      - name: Require harness sources
         run: |
           set -euo pipefail
-          if [ -f harness/ros2_gz/package.xml ]; then
-            echo "package.xml present (L3 stub)"
-            head -n 20 harness/ros2_gz/package.xml
-          else
-            echo "ros2_gz package not present yet — stub skip"
-          fi
+          missing=0
+          for f in \
+            harness/ros2_gz/package.xml \
+            harness/ros2_gz/CMakeLists.txt \
+            harness/ros2_gz/node_wrap.c \
+            harness/ros2_gz/launch_server.sh
+          do
+            test -f "$f" || { echo "::error::missing required source: $f"; missing=1; }
+          done
+          exit "$missing"
+
+      - name: Build and test node wrap
+        run: |
+          set -euo pipefail
           cmake -S harness/ros2_gz -B build/ros2_gz
           cmake --build build/ros2_gz
           ctest --test-dir build/ros2_gz --output-on-failure
