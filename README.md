@@ -1,5 +1,7 @@
 # Latch Benchmark Suite
 
+[![ci](https://github.com/iome-sh/latch-benchmark/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/iome-sh/latch-benchmark/actions/workflows/ci.yml)
+
 This repository is the open benchmark for an in-process robot mode election. The license is Apache-2.0. The organization is [`iome-sh`](https://github.com/iome-sh).
 
 Latch itself is a separate product and is not in this tree. What is here is the harness, the fixtures, the schemas, and the scripts a partner can run.
@@ -26,6 +28,21 @@ The suite does not score grasp success. It is not a SIL or ISO pack. It is not a
 | BM-12 | No illegal mode is emitted. |
 
 The pass rules are in [`docs/SPEC.md`](docs/SPEC.md). Measures this suite does not use are in [`docs/NONGOALS.md`](docs/NONGOALS.md).
+
+## Quick start
+
+You need CMake 3.20 or later, a C compiler, Python 3 and bash. No Latch library is needed: the MuJoCo harness uses the mock oracle by default.
+
+```bash
+git clone https://github.com/iome-sh/latch-benchmark.git
+cd latch-benchmark
+export LATCH_GOLDENS="$PWD/fixtures/latch-robot-1.jsonl"
+cmake -S harness/mujoco -B build/mujoco
+cmake --build build/mujoco
+bash scripts/fa_checklist_run.sh
+```
+
+This is the same mock-oracle run that CI does. The output reports `oracle=mock` and includes `PASS BM-12 no-alloc election tick`. The ROS 2 and gz path is described in [`harness/ros2_gz/README.md`](harness/ros2_gz/README.md).
 
 ## Status
 
