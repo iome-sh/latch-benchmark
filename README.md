@@ -42,7 +42,7 @@ cmake --build build/mujoco
 bash scripts/fa_checklist_run.sh
 ```
 
-This is the same mock-oracle run that CI does. The output reports `oracle=mock` and ends with `PASS BM-12 no-alloc election tick`. The ROS 2 and gz path is described in [`harness/ros2_gz/README.md`](harness/ros2_gz/README.md).
+This is the same mock-oracle run that CI does. The output reports `oracle=mock` and includes `PASS BM-12 no-alloc election tick`. The ROS 2 and gz path is described in [`harness/ros2_gz/README.md`](harness/ros2_gz/README.md).
 
 ## Status
 
